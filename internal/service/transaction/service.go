@@ -7,17 +7,18 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/sirawong/simple-banking-api/internal/domain"
+	"github.com/sirawong/simple-banking-api/internal/domain/constrant"
+	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	cacherepo "github.com/sirawong/simple-banking-api/internal/repository/cache"
 	dbrepo "github.com/sirawong/simple-banking-api/internal/repository/db"
 )
 
 type Service interface {
-	Deposit(ctx context.Context, accountID string, amount decimal.Decimal) (*domain.Transaction, error)
-	Withdraw(ctx context.Context, accountID string, amount decimal.Decimal) (*domain.Transaction, error)
-	Transfer(ctx context.Context, fromAccountID, toAccountID string, amount decimal.Decimal) (*domain.Transaction, error)
-	ListByAccount(ctx context.Context, accountID string, page, limit int) ([]*domain.Transaction, int64, error)
+	Deposit(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error)
+	Withdraw(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error)
+	Transfer(ctx context.Context, fromAccountID, toAccountID string, amount decimal.Decimal) (*entity.Transaction, error)
+	ListByAccount(ctx context.Context, accountID string, page, limit int) ([]*entity.Transaction, int64, error)
 }
 
 type service struct {
@@ -42,7 +43,7 @@ func ProvideService(
 	}
 }
 
-func (s *service) Deposit(ctx context.Context, accountID string, amount decimal.Decimal) (*domain.Transaction, error) {
+func (s *service) Deposit(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error) {
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return nil, errs.ErrAccountNotFound
@@ -50,7 +51,7 @@ func (s *service) Deposit(ctx context.Context, accountID string, amount decimal.
 
 	_ = s.cache.Delete(ctx, cacheBalanceKey(accountID))
 
-	var tx *domain.Transaction
+	var tx *entity.Transaction
 	err = s.txManager.RunInTx(ctx, func(dbTx dbrepo.Tx) error {
 		account.Balance = account.Balance.Add(amount)
 		if err := s.accountRepo.Update(ctx, dbTx, account); err != nil {
@@ -58,11 +59,11 @@ func (s *service) Deposit(ctx context.Context, accountID string, amount decimal.
 		}
 
 		toID := account.ID
-		tx = &domain.Transaction{
+		tx = &entity.Transaction{
 			ToAccountID: toID,
 			Amount:      amount,
-			Type:        domain.TransactionTypeDeposit,
-			Status:      domain.TransactionStatusSuccess,
+			Type:        constrant.TransactionTypeDeposit,
+			Status:      constrant.TransactionStatusSuccess,
 		}
 		return s.txRepo.Create(ctx, dbTx, tx)
 	})
@@ -74,7 +75,7 @@ func (s *service) Deposit(ctx context.Context, accountID string, amount decimal.
 	return tx, nil
 }
 
-func (s *service) Withdraw(ctx context.Context, accountID string, amount decimal.Decimal) (*domain.Transaction, error) {
+func (s *service) Withdraw(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error) {
 	account, err := s.accountRepo.FindByID(ctx, accountID)
 	if err != nil {
 		return nil, errs.ErrAccountNotFound
@@ -85,7 +86,7 @@ func (s *service) Withdraw(ctx context.Context, accountID string, amount decimal
 
 	_ = s.cache.Delete(ctx, cacheBalanceKey(accountID))
 
-	var tx *domain.Transaction
+	var tx *entity.Transaction
 	err = s.txManager.RunInTx(ctx, func(dbTx dbrepo.Tx) error {
 		account.Balance = account.Balance.Sub(amount)
 		if err := s.accountRepo.Update(ctx, dbTx, account); err != nil {
@@ -93,12 +94,12 @@ func (s *service) Withdraw(ctx context.Context, accountID string, amount decimal
 		}
 
 		fromID := account.ID
-		tx = &domain.Transaction{
+		tx = &entity.Transaction{
 			FromAccountID: &fromID,
 			ToAccountID:   account.ID,
 			Amount:        amount,
-			Type:          domain.TransactionTypeWithdraw,
-			Status:        domain.TransactionStatusSuccess,
+			Type:          constrant.TransactionTypeWithdraw,
+			Status:        constrant.TransactionStatusSuccess,
 		}
 		return s.txRepo.Create(ctx, dbTx, tx)
 	})
@@ -110,7 +111,7 @@ func (s *service) Withdraw(ctx context.Context, accountID string, amount decimal
 	return tx, nil
 }
 
-func (s *service) Transfer(ctx context.Context, fromAccountID, toAccountID string, amount decimal.Decimal) (*domain.Transaction, error) {
+func (s *service) Transfer(ctx context.Context, fromAccountID, toAccountID string, amount decimal.Decimal) (*entity.Transaction, error) {
 	if fromAccountID == toAccountID {
 		return nil, errs.ErrSameAccount
 	}
@@ -118,7 +119,7 @@ func (s *service) Transfer(ctx context.Context, fromAccountID, toAccountID strin
 	_ = s.cache.Delete(ctx, cacheBalanceKey(fromAccountID))
 	_ = s.cache.Delete(ctx, cacheBalanceKey(toAccountID))
 
-	var tx *domain.Transaction
+	var tx *entity.Transaction
 	err := s.txManager.RunInTx(ctx, func(dbTx dbrepo.Tx) error {
 		from, err := s.accountRepo.FindByIDForUpdate(ctx, dbTx, fromAccountID)
 		if err != nil {
@@ -144,12 +145,12 @@ func (s *service) Transfer(ctx context.Context, fromAccountID, toAccountID strin
 		}
 
 		fromID := from.ID
-		tx = &domain.Transaction{
+		tx = &entity.Transaction{
 			FromAccountID: &fromID,
 			ToAccountID:   to.ID,
 			Amount:        amount,
-			Type:          domain.TransactionTypeTransfer,
-			Status:        domain.TransactionStatusSuccess,
+			Type:          constrant.TransactionTypeTransfer,
+			Status:        constrant.TransactionStatusSuccess,
 		}
 		return s.txRepo.Create(ctx, dbTx, tx)
 	})
@@ -162,7 +163,7 @@ func (s *service) Transfer(ctx context.Context, fromAccountID, toAccountID strin
 	return tx, nil
 }
 
-func (s *service) ListByAccount(ctx context.Context, accountID string, page, limit int) ([]*domain.Transaction, int64, error) {
+func (s *service) ListByAccount(ctx context.Context, accountID string, page, limit int) ([]*entity.Transaction, int64, error) {
 	return s.txRepo.FindByAccountID(ctx, accountID, page, limit)
 }
 

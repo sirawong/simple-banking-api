@@ -1,8 +1,8 @@
-package dto
+package request
 
 // CreateAccountRequest godoc
 type CreateAccountRequest struct {
-	UserID   string `json:"user_id" binding:"required,uuid"`
+	UserID   string `json:"userId" binding:"required,uuid"`
 	Currency string `json:"currency" binding:"required"`
 }
 

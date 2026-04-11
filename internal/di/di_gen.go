@@ -3,19 +3,27 @@ package di
 
 import (
 	"github.com/google/wire"
-	internal_adapter_db "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
+	internal_adapter_postgres "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	internal_adapter_redis "github.com/sirawong/simple-banking-api/internal/adapter/redis"
+	internal_config "github.com/sirawong/simple-banking-api/internal/config"
 	internal_handler "github.com/sirawong/simple-banking-api/internal/handler"
 	internal_handler_handler "github.com/sirawong/simple-banking-api/internal/handler/handler"
-	internal_repository_postgres "github.com/sirawong/simple-banking-api/internal/repository/db"
-	internal_repository_redis "github.com/sirawong/simple-banking-api/internal/repository/cache"
+	internal_repository_cache "github.com/sirawong/simple-banking-api/internal/repository/cache"
+	internal_repository_db "github.com/sirawong/simple-banking-api/internal/repository/db"
+	internal_repository_db_migrate "github.com/sirawong/simple-banking-api/internal/repository/db/migrate"
+	internal_server "github.com/sirawong/simple-banking-api/internal/server"
 	internal_service_account "github.com/sirawong/simple-banking-api/internal/service/account"
 	internal_service_transaction "github.com/sirawong/simple-banking-api/internal/service/transaction"
 )
 
 var InternalSet = wire.NewSet(
+	internal_config.ProvideConfig,
+	internal_server.ProvideServer,
+)
+
+var AdapterSet = wire.NewSet(
 	internal_adapter_redis.ProvideRedisClient,
-	internal_adapter_db.ProvideDB,
+	internal_adapter_postgres.ProvideDB,
 )
 
 var HandlerSet = wire.NewSet(
@@ -24,11 +32,16 @@ var HandlerSet = wire.NewSet(
 	internal_handler.ProvideRouter,
 )
 
+var Migrate = wire.NewSet(
+	internal_repository_db_migrate.ProvideMigrate,
+)
+
 var RepositorySet = wire.NewSet(
-	internal_repository_redis.ProvideCacheRepository,
-	internal_repository_postgres.ProvideUserRepository,
-	internal_repository_postgres.ProvideTransactionRepository,
-	internal_repository_postgres.ProvideAccountRepository,
+	internal_repository_cache.ProvideCacheRepository,
+	internal_repository_db.ProvideUserRepository,
+	internal_repository_db.ProvideTransactionRepository,
+	internal_repository_db.ProvideAccountRepository,
+	internal_repository_db.ProvideTxManager,
 )
 
 var ServiceSet = wire.NewSet(

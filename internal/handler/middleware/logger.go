@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 

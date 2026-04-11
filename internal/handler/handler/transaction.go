@@ -2,7 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/sirawong/simple-banking-api/internal/handler/dto"
+
+	dtoreq "github.com/sirawong/simple-banking-api/internal/handler/dto/request"
+	dtores "github.com/sirawong/simple-banking-api/internal/handler/dto/response"
 	"github.com/sirawong/simple-banking-api/internal/handler/response"
 	transaction "github.com/sirawong/simple-banking-api/internal/service/transaction"
 )
@@ -22,20 +24,20 @@ func ProvideTransactionHandler(txSvc transaction.Service) *TransactionHandler {
 // @Tags         transactions
 // @Accept       json
 // @Produce      json
-// @Param        body  body      dto.DepositRequest  true  "Deposit request"
-// @Success      200   {object}  errs.AppError
+// @Param        body  body      dtoreq.DepositRequest  true  "Deposit request"
+// @Success      200   {object}  dtores.TransactionResponse
 // @Failure      400   {object}  errs.AppError
 // @Failure      404   {object}  errs.AppError
 // @Router       /api/v1/transactions/deposit [post]
 func (h *TransactionHandler) Deposit(c *gin.Context) {
-	var req dto.DepositRequest
+	var req dtoreq.DepositRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.HandleResponse(c, nil, err)
 		return
 	}
 
 	tx, err := h.txSvc.Deposit(c.Request.Context(), req.AccountID, req.Amount)
-	response.HandleResponse(c, tx, err)
+	response.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
 }
 
 // Withdraw godoc
@@ -44,21 +46,21 @@ func (h *TransactionHandler) Deposit(c *gin.Context) {
 // @Tags         transactions
 // @Accept       json
 // @Produce      json
-// @Param        body  body      dto.WithdrawRequest  true  "Withdraw request"
-// @Success      200   {object}  errs.AppError
+// @Param        body  body      dtoreq.WithdrawRequest  true  "Withdraw request"
+// @Success      200   {object}  dtores.TransactionResponse
 // @Failure      400   {object}  errs.AppError
 // @Failure      404   {object}  errs.AppError
 // @Failure      422   {object}  errs.AppError
 // @Router       /api/v1/transactions/withdraw [post]
 func (h *TransactionHandler) Withdraw(c *gin.Context) {
-	var req dto.WithdrawRequest
+	var req dtoreq.WithdrawRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.HandleResponse(c, nil, err)
 		return
 	}
 
 	tx, err := h.txSvc.Withdraw(c.Request.Context(), req.AccountID, req.Amount)
-	response.HandleResponse(c, tx, err)
+	response.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
 }
 
 // Transfer godoc
@@ -67,19 +69,19 @@ func (h *TransactionHandler) Withdraw(c *gin.Context) {
 // @Tags         transactions
 // @Accept       json
 // @Produce      json
-// @Param        body  body      dto.TransferRequest  true  "Transfer request"
-// @Success      200   {object}  errs.AppError
+// @Param        body  body      dtoreq.TransferRequest  true  "Transfer request"
+// @Success      200   {object}  dtores.TransactionResponse
 // @Failure      400   {object}  errs.AppError
 // @Failure      404   {object}  errs.AppError
 // @Failure      422   {object}  errs.AppError
 // @Router       /api/v1/transactions/transfer [post]
 func (h *TransactionHandler) Transfer(c *gin.Context) {
-	var req dto.TransferRequest
+	var req dtoreq.TransferRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.HandleResponse(c, nil, err)
 		return
 	}
 
 	tx, err := h.txSvc.Transfer(c.Request.Context(), req.FromAccountID, req.ToAccountID, req.Amount)
-	response.HandleResponse(c, tx, err)
+	response.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
 }

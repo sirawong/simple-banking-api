@@ -1,0 +1,12 @@
+all: true
+dir: "{{.InterfaceDir}}/mock"
+filename: "mock_{{.InterfaceName | snakecase}}.go"
+structname: "{{.Mock}}{{.InterfaceName}}"
+pkgname: "mock_{{.SrcPackageName}}"
+template: testify
+recursive: true
+require-template-schema-exists: true
+formatter: goimports
+log-level: warn
+packages:
+  github.com/sirawong/simple-banking-api/internal:

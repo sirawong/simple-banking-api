@@ -9,14 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"github.com/sirawong/simple-banking-api/internal/domain"
+	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	cacherepo "github.com/sirawong/simple-banking-api/internal/repository/cache"
 	dbrepo "github.com/sirawong/simple-banking-api/internal/repository/db"
 )
 
 type Service interface {
-	CreateAccount(ctx context.Context, userID, currency string) (*domain.Account, error)
+	CreateAccount(ctx context.Context, userID, currency string) (*entity.Account, error)
 	GetBalance(ctx context.Context, accountID string) (decimal.Decimal, error)
 }
 
@@ -30,12 +30,12 @@ func ProvideService(accountRepo dbrepo.AccountRepository, cache cacherepo.Reposi
 	return &service{accountRepo: accountRepo, cache: cache}
 }
 
-func (s *service) CreateAccount(ctx context.Context, userID, currency string) (*domain.Account, error) {
+func (s *service) CreateAccount(ctx context.Context, userID, currency string) (*entity.Account, error) {
 	uid, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, errs.ErrBadRequest.New("invalid user_id: %s", userID)
 	}
-	account := &domain.Account{
+	account := &entity.Account{
 		UserID:        uid,
 		AccountNumber: generateAccountNumber(),
 		Currency:      currency,

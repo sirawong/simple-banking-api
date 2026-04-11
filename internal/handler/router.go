@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
 	_ "github.com/sirawong/simple-banking-api/docs"
 	handlerhttp "github.com/sirawong/simple-banking-api/internal/handler/handler"
 	"github.com/sirawong/simple-banking-api/internal/handler/middleware"

@@ -7,7 +7,7 @@ build:
 	go build -o bin/api ./cmd/api
 
 migrate:
-	go run ./cmd/api -migrate
+	go run ./cmd/migrate
 
 gen: gen-wire gen-mock gen-swagger
 
@@ -15,7 +15,7 @@ gen-wire:
 	bash scripts/gen_wire.sh
 
 gen-mock:
-	mockery --all --dir=internal/repository --output=internal/mocks --outpkg=mocks
+	mockery
 
 gen-swagger:
 	swag init -g cmd/api/main.go -o docs

@@ -7,8 +7,9 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/sirawong/simple-banking-api/internal/domain"
+	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
+	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
 )
 
 type userRepository struct {
@@ -20,29 +21,29 @@ func ProvideUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) FindByID(ctx context.Context, id string) (*domain.User, error) {
-	var user domain.User
+func (r *userRepository) FindByID(ctx context.Context, id string) (*entity.User, error) {
+	var user model.User
 	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").First(&user, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrUserNotFound
 		}
 		return nil, err
 	}
-	return &user, nil
+	return user.ToEntity(), nil
 }
 
-func (r *userRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
-	var user domain.User
+func (r *userRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+	var user model.User
 	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").First(&user, "email = ?", email).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrUserNotFound
 		}
 		return nil, err
 	}
-	return &user, nil
+	return user.ToEntity(), nil
 }
 
-func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
+func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
 	if user.ID == uuid.Nil {
 		user.ID = uuid.New()
 	}

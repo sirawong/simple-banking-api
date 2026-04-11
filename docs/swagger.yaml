@@ -1,0 +1,245 @@
+basePath: /
+definitions:
+  dto.CreateAccountRequest:
+    properties:
+      currency:
+        type: string
+      user_id:
+        type: string
+    required:
+    - currency
+    - user_id
+    type: object
+  dto.DepositRequest:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: number
+    required:
+    - account_id
+    - amount
+    type: object
+  dto.TransferRequest:
+    properties:
+      amount:
+        type: number
+      from_account_id:
+        type: string
+      to_account_id:
+        type: string
+    required:
+    - amount
+    - from_account_id
+    - to_account_id
+    type: object
+  dto.WithdrawRequest:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: number
+    required:
+    - account_id
+    - amount
+    type: object
+  errs.AppError:
+    properties:
+      detail: {}
+      error_message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A simple banking API with accounts and transactions
+  title: Banking API
+  version: "1.0"
+paths:
+  /api/v1/accounts:
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank account for a user
+      parameters:
+      - description: Create account request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Create account
+      tags:
+      - accounts
+  /api/v1/accounts/{id}:
+    get:
+      description: Get account details including balance
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Get account
+      tags:
+      - accounts
+  /api/v1/accounts/{id}/transactions:
+    get:
+      description: List transactions for an account with pagination
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: List transactions
+      tags:
+      - accounts
+  /api/v1/transactions/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit money into an account
+      parameters:
+      - description: Deposit request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Deposit
+      tags:
+      - transactions
+  /api/v1/transactions/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money between accounts
+      parameters:
+      - description: Transfer request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Transfer
+      tags:
+      - transactions
+  /api/v1/transactions/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw money from an account
+      parameters:
+      - description: Withdraw request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.AppError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/errs.AppError'
+      summary: Withdraw
+      tags:
+      - transactions
+swagger: "2.0"

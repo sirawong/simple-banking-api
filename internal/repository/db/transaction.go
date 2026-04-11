@@ -6,7 +6,8 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"github.com/sirawong/simple-banking-api/internal/domain"
+	"github.com/sirawong/simple-banking-api/internal/domain/entity"
+	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
 )
 
 type transactionRepository struct {
@@ -18,7 +19,7 @@ func ProvideTransactionRepository(db *gorm.DB) TransactionRepository {
 	return &transactionRepository{db: db}
 }
 
-func (r *transactionRepository) Create(ctx context.Context, tx Tx, transaction *domain.Transaction) error {
+func (r *transactionRepository) Create(ctx context.Context, tx Tx, transaction *entity.Transaction) error {
 	gormTx := tx.(*gorm.DB)
 	if transaction.ID == uuid.Nil {
 		transaction.ID = uuid.New()
@@ -26,11 +27,11 @@ func (r *transactionRepository) Create(ctx context.Context, tx Tx, transaction *
 	return gormTx.WithContext(ctx).Create(transaction).Error
 }
 
-func (r *transactionRepository) FindByAccountID(ctx context.Context, accountID string, page, limit int) ([]*domain.Transaction, int64, error) {
-	var transactions []*domain.Transaction
+func (r *transactionRepository) FindByAccountID(ctx context.Context, accountID string, page, limit int) ([]*entity.Transaction, int64, error) {
+	var transactions *model.Transactions
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&domain.Transaction{}).
+	query := r.db.WithContext(ctx).Model(&model.Transaction{}).
 		Where("from_account_id = ? OR to_account_id = ?", accountID, accountID)
 
 	if err := query.Count(&total).Error; err != nil {
@@ -42,5 +43,5 @@ func (r *transactionRepository) FindByAccountID(ctx context.Context, accountID s
 		return nil, 0, err
 	}
 
-	return transactions, total, nil
+	return transactions.ToEntities(), total, nil
 }

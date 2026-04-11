@@ -7,46 +7,45 @@
 package main
 
 import (
-	"flag"
-	"log"
+	"context"
+	"errors"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/sirawong/simple-banking-api/cmd/api/di"
-	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
-	"github.com/sirawong/simple-banking-api/internal/config"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 func main() {
-	migrate := flag.Bool("migrate", false, "Run database migration")
-	flag.Parse()
+	log := logger.ProvideGlobalLogger()
 
-	cfg, err := config.ProvideConfig()
+	app, cleanup, err := di.InitializeApp(log)
 	if err != nil {
-		log.Fatalf("failed to load config: %v", err)
+		log.Error("failed to initialize app", err)
+		os.Exit(1)
 	}
+	defer cleanup()
 
-	if *migrate {
-		db, err := adapterdb.ProvideDB(cfg)
-		if err != nil {
-			log.Fatalf("failed to connect to database: %v", err)
+	go func() {
+		if err := app.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error("server error", err)
+			os.Exit(1)
 		}
-		if err := adapterdb.AutoMigrate(db); err != nil {
-			log.Fatalf("failed to migrate: %v", err)
-		}
-		log.Println("migration completed")
-		return
-	}
+	}()
 
-	engine, err := di.InitializeApp(cfg)
-	if err != nil {
-		log.Fatalf("failed to initialize app: %v", err)
-	}
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
 
-	port := cfg.App.Port
-	if port == "" {
-		port = "8080"
+	log.Info("shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := app.Stop(ctx); err != nil {
+		log.Warn("server forced to shutdown", "error", err)
 	}
-	log.Printf("starting server on :%s", port)
-	if err := engine.Run(":" + port); err != nil {
-		log.Fatalf("failed to start server: %v", err)
-	}
+	log.Info("server stopped")
 }
