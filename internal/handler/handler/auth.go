@@ -6,6 +6,7 @@ import (
 	dtoreq "github.com/sirawong/simple-banking-api/internal/handler/dto/request"
 	dtores "github.com/sirawong/simple-banking-api/internal/handler/dto/response"
 	authsvc "github.com/sirawong/simple-banking-api/internal/service/auth"
+	_ "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type AuthHandler struct {

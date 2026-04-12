@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateAccountRequest"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest"
                         }
                     }
                 ],
@@ -43,25 +43,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     }
                 }
@@ -90,13 +90,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     }
                 }
@@ -137,13 +137,145 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "description": "Authenticate with email and password, returns JWT token pair",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "description": "Exchange a valid refresh token for a new token pair",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh token",
+                "parameters": [
+                    {
+                        "description": "Refresh token request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "description": "Create a new user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "Register request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     }
                 }
@@ -169,7 +301,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.DepositRequest"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest"
                         }
                     }
                 ],
@@ -177,19 +309,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     }
                 }
@@ -215,7 +347,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.TransferRequest"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.TransferRequest"
                         }
                     }
                 ],
@@ -223,25 +355,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     }
                 }
@@ -267,7 +399,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.WithdrawRequest"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest"
                         }
                     }
                 ],
@@ -275,25 +407,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
-                            "$ref": "#/definitions/errs.AppError"
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     }
                 }
@@ -301,29 +433,55 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.CreateAccountRequest": {
+        "github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "success",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "TransactionStatusPending",
+                "TransactionStatusSuccess",
+                "TransactionStatusFailed"
+            ]
+        },
+        "github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionType": {
+            "type": "string",
+            "enum": [
+                "deposit",
+                "withdraw",
+                "transfer"
+            ],
+            "x-enum-varnames": [
+                "TransactionTypeDeposit",
+                "TransactionTypeWithdraw",
+                "TransactionTypeTransfer"
+            ]
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest": {
             "type": "object",
             "required": [
                 "currency",
-                "user_id"
+                "userId"
             ],
             "properties": {
                 "currency": {
                     "type": "string"
                 },
-                "user_id": {
+                "userId": {
                     "type": "string"
                 }
             }
         },
-        "dto.DepositRequest": {
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest": {
             "type": "object",
             "required": [
-                "account_id",
+                "accountId",
                 "amount"
             ],
             "properties": {
-                "account_id": {
+                "accountId": {
                     "type": "string"
                 },
                 "amount": {
@@ -331,33 +489,79 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.TransferRequest": {
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "refreshToken"
+            ],
+            "properties": {
+                "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.TransferRequest": {
             "type": "object",
             "required": [
                 "amount",
-                "from_account_id",
-                "to_account_id"
+                "fromAccountId",
+                "toAccountId"
             ],
             "properties": {
                 "amount": {
                     "type": "number"
                 },
-                "from_account_id": {
+                "fromAccountId": {
                     "type": "string"
                 },
-                "to_account_id": {
+                "toAccountId": {
                     "type": "string"
                 }
             }
         },
-        "dto.WithdrawRequest": {
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest": {
             "type": "object",
             "required": [
-                "account_id",
+                "accountId",
                 "amount"
             ],
             "properties": {
-                "account_id": {
+                "accountId": {
                     "type": "string"
                 },
                 "amount": {
@@ -365,7 +569,124 @@ const docTemplate = `{
                 }
             }
         },
-        "errs.AppError": {
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse": {
+            "type": "object",
+            "properties": {
+                "accountNumber": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "expiresIn": {
+                    "type": "integer"
+                },
+                "refreshToken": {
+                    "type": "string"
+                },
+                "tokenType": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse"
+                    }
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "fromAccountId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus"
+                },
+                "toAccountId": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionType"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_internal_handler_dto_response.UserResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_sirawong_simple-banking-api_pkg_errs.AppError": {
             "type": "object",
             "properties": {
                 "detail": {},

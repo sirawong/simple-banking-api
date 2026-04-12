@@ -18,7 +18,7 @@ gen-mock:
 	mockery
 
 gen-swagger:
-	swag init -g cmd/api/main.go -o docs
+	bash -c 'set -o pipefail; swag init -g cmd/api/main.go -o docs --parseDependency --parseInternal 2>&1 | grep -Ev "failed to get package name|reflect: call of reflect.Value"'
 
 test:
 	go test ./... -v -race

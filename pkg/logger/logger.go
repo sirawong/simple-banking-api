@@ -48,6 +48,7 @@ func New(opts Options) (*Logger, error) {
 
 // ProvideGlobalLogger reads LOG_LEVEL / LOG_OUTPUT / CLOUDWATCH_* from environment
 // and initialises the singleton logger exactly once.
+// @wire:ignore
 func ProvideGlobalLogger() *Logger {
 	once.Do(func() {
 		opts := Options{

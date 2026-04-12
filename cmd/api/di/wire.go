@@ -10,11 +10,13 @@ import (
 
 	"github.com/sirawong/simple-banking-api/internal/di"
 	"github.com/sirawong/simple-banking-api/internal/server"
+	pkgdi "github.com/sirawong/simple-banking-api/pkg/di"
 	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 func InitializeApp(log *logger.Logger) (*server.App, func(), error) {
 	wire.Build(
+		pkgdi.PkgSet,
 		di.InternalSet,
 		di.AdapterSet,
 		di.RepositorySet,

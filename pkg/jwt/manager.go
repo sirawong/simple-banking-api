@@ -22,7 +22,7 @@ type Manager interface {
 }
 
 // ProvideManager constructs a manager from application config.
-func ProvideManager(cfg *config.Config) *manager {
+func ProvideManager(cfg *config.Config) Manager {
 	return &manager{secret: []byte(cfg.JWT.Secret), ttl: cfg.JWT.AccessTokenTTL}
 }
 

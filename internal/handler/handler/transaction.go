@@ -5,7 +5,8 @@ import (
 
 	dtoreq "github.com/sirawong/simple-banking-api/internal/handler/dto/request"
 	dtores "github.com/sirawong/simple-banking-api/internal/handler/dto/response"
-	transaction "github.com/sirawong/simple-banking-api/internal/service/transaction"
+	"github.com/sirawong/simple-banking-api/internal/service/transaction"
+	_ "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type TransactionHandler struct {

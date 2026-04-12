@@ -1,49 +1,176 @@
 basePath: /
 definitions:
-  dto.CreateAccountRequest:
+  github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus:
+    enum:
+    - pending
+    - success
+    - failed
+    type: string
+    x-enum-varnames:
+    - TransactionStatusPending
+    - TransactionStatusSuccess
+    - TransactionStatusFailed
+  github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionType:
+    enum:
+    - deposit
+    - withdraw
+    - transfer
+    type: string
+    x-enum-varnames:
+    - TransactionTypeDeposit
+    - TransactionTypeWithdraw
+    - TransactionTypeTransfer
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest:
     properties:
       currency:
         type: string
-      user_id:
+      userId:
         type: string
     required:
     - currency
-    - user_id
+    - userId
     type: object
-  dto.DepositRequest:
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest:
     properties:
-      account_id:
+      accountId:
         type: string
       amount:
         type: number
     required:
-    - account_id
+    - accountId
     - amount
     type: object
-  dto.TransferRequest:
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.RefreshTokenRequest:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.TransferRequest:
     properties:
       amount:
         type: number
-      from_account_id:
+      fromAccountId:
         type: string
-      to_account_id:
+      toAccountId:
         type: string
     required:
     - amount
-    - from_account_id
-    - to_account_id
+    - fromAccountId
+    - toAccountId
     type: object
-  dto.WithdrawRequest:
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest:
     properties:
-      account_id:
+      accountId:
         type: string
       amount:
         type: number
     required:
-    - account_id
+    - accountId
     - amount
     type: object
-  errs.AppError:
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse:
+    properties:
+      accountNumber:
+        type: string
+      balance:
+        type: number
+      createdAt:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      userId:
+        type: string
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse:
+    properties:
+      accountId:
+        type: string
+      balance:
+        type: number
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse:
+    properties:
+      accessToken:
+        type: string
+      expiresIn:
+        type: integer
+      refreshToken:
+        type: string
+      tokenType:
+        type: string
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      transactions:
+        items:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
+        type: array
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      createdAt:
+        type: string
+      fromAccountId:
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus'
+      toAccountId:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionType'
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  github_com_sirawong_simple-banking-api_pkg_errs.AppError:
     properties:
       detail: {}
       error_message:
@@ -67,26 +194,26 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateAccountRequest'
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
       summary: Create account
       tags:
       - accounts
@@ -105,11 +232,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
       summary: Get account
       tags:
       - accounts
@@ -136,14 +263,100 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
       summary: List transactions
       tags:
       - accounts
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with email and password, returns JWT token pair
+      parameters:
+      - description: Login request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      summary: Login
+      tags:
+      - auth
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Exchange a valid refresh token for a new token pair
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      summary: Refresh token
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Register request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      summary: Register
+      tags:
+      - auth
   /api/v1/transactions/deposit:
     post:
       consumes:
@@ -155,22 +368,22 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.DepositRequest'
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
       summary: Deposit
       tags:
       - transactions
@@ -185,26 +398,26 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.TransferRequest'
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.TransferRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
       summary: Transfer
       tags:
       - transactions
@@ -219,26 +432,26 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/dto.WithdrawRequest'
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
         "422":
           description: Unprocessable Entity
           schema:
-            $ref: '#/definitions/errs.AppError'
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
       summary: Withdraw
       tags:
       - transactions
