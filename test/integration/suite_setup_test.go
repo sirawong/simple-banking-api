@@ -16,8 +16,6 @@ import (
 	"github.com/sirawong/simple-banking-api/test/integration/testutil"
 )
 
-// --- Shared containers (package-level, started once in TestMain) ---
-
 var (
 	sharedDB    *testutil.TestDB
 	sharedRedis *testutil.TestRedis
@@ -49,11 +47,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// --- BaseSuite ---
-
-// BaseSuite wires the full stack (handler → service → repository) against real
-// Postgres and Redis containers. Config is loaded from .env.test via ENV_FILE.
-// Every test gets a clean state via TruncateAll + FlushAll.
 type BaseSuite struct {
 	suite.Suite
 	ctx        context.Context

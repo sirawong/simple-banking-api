@@ -16,15 +16,11 @@ import (
 	"github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
-// --- Token helper ---
-
 func (s *BaseSuite) tokenFor(user *entity.User) string {
 	tok, err := s.jwtManager.Generate(user.ID.String(), user.Email)
 	s.Require().NoError(err)
 	return tok
 }
-
-// --- Error response helper ---
 
 type errBody struct {
 	Message string `json:"error_message"`
@@ -35,8 +31,6 @@ func (s *BaseSuite) requireErrMessage(w *httptest.ResponseRecorder, want *errs.A
 	s.decodeBody(w, &body)
 	s.Equal(want.Message, body.Message)
 }
-
-// --- Seed helpers ---
 
 // seedUser inserts a user directly into the DB and returns the entity.
 func (s *BaseSuite) seedUser(name, email, password string) *entity.User {
@@ -89,8 +83,6 @@ func nextAccountNumber() string {
 	n := accountSeq.Add(1)
 	return fmt.Sprintf("%010d", 1000000000+n)
 }
-
-// --- HTTP helpers ---
 
 func (s *BaseSuite) do(method, path string, body any, token string) *httptest.ResponseRecorder {
 	var buf *bytes.Buffer

@@ -14,8 +14,6 @@ type AuthSuite struct{ BaseSuite }
 
 func TestAuthSuite(t *testing.T) { suite.Run(t, new(AuthSuite)) }
 
-// --- Register ---
-
 func (s *AuthSuite) TestRegister_Success() {
 	w := s.POST("/api/v1/auth/register", map[string]any{
 		"name":     "Alice",
@@ -50,8 +48,6 @@ func (s *AuthSuite) TestRegister_InvalidBody() {
 	}, "")
 	s.Equal(http.StatusBadRequest, w.Code)
 }
-
-// --- Login ---
 
 func (s *AuthSuite) TestLogin_Success() {
 	s.seedUser("Bob", "bob@example.com", "Password@123")
@@ -88,8 +84,6 @@ func (s *AuthSuite) TestLogin_UserNotFound() {
 	}, "")
 	s.Equal(http.StatusUnauthorized, w.Code)
 }
-
-// --- Refresh Token ---
 
 func (s *AuthSuite) TestRefreshToken_Success() {
 	s.seedUser("Carol", "carol@example.com", "Password@123")

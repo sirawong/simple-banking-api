@@ -15,8 +15,6 @@ type AccountSuite struct{ BaseSuite }
 
 func TestAccountSuite(t *testing.T) { suite.Run(t, new(AccountSuite)) }
 
-// --- Create Account ---
-
 func (s *AccountSuite) TestCreateAccount_Success() {
 	user := s.seedUser("Alice", "alice@example.com", "Password@123")
 	token := s.tokenFor(user)
@@ -43,8 +41,6 @@ func (s *AccountSuite) TestCreateAccount_MissingCurrency() {
 	w := s.POST("/api/v1/accounts", map[string]any{}, s.tokenFor(user))
 	s.Equal(http.StatusBadRequest, w.Code)
 }
-
-// --- List Accounts ---
 
 func (s *AccountSuite) TestListAccounts_ReturnOnlyOwnerAccounts() {
 	alice := s.seedUser("Alice", "alice@example.com", "Password@123")
@@ -73,8 +69,6 @@ func (s *AccountSuite) TestListAccounts_EmptyWhenNoAccounts() {
 	s.decodeBody(w, &body)
 	s.Empty(body)
 }
-
-// --- Get Account (Balance) ---
 
 func (s *AccountSuite) TestGetAccount_Success() {
 	user := s.seedUser("Alice", "alice@example.com", "Password@123")
@@ -105,8 +99,6 @@ func (s *AccountSuite) TestGetAccount_ForbiddenOtherUser() {
 	s.Equal(http.StatusForbidden, w.Code)
 	s.requireErrMessage(w, errs.ErrForbidden)
 }
-
-// --- List Transactions ---
 
 func (s *AccountSuite) TestListTransactions_EmptyInitially() {
 	user := s.seedUser("Alice", "alice@example.com", "Password@123")

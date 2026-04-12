@@ -45,8 +45,6 @@ func TestAuthServiceSuite(t *testing.T) {
 	suite.Run(t, new(AuthServiceSuite))
 }
 
-// --- Register ---
-
 func (s *AuthServiceSuite) TestRegister_Success() {
 	created := &entity.User{ID: uuid.New(), Name: "Alice", Email: "alice@example.com"}
 	s.ur.EXPECT().Create(mock.Anything, mock.AnythingOfType("*entity.User")).Return(created, nil)
@@ -63,8 +61,6 @@ func (s *AuthServiceSuite) TestRegister_DuplicateEmail() {
 	_, err := s.svc.Register(context.Background(), "Alice", "alice@example.com", "Password@123")
 	s.ErrorIs(err, errs.ErrDuplicateUser)
 }
-
-// --- Login ---
 
 func (s *AuthServiceSuite) TestLogin_Success() {
 	userID := uuid.New()
@@ -105,8 +101,6 @@ func (s *AuthServiceSuite) TestLogin_WrongPassword() {
 	_, err = s.svc.Login(context.Background(), "alice@example.com", "wrong-password")
 	s.ErrorIs(err, errs.ErrInvalidPassword)
 }
-
-// --- RefreshToken ---
 
 func (s *AuthServiceSuite) TestRefreshToken_Success() {
 	userID := uuid.New()

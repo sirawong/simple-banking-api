@@ -66,30 +66,12 @@ func (l *Logger) Error(msg string, err error, args ...any) {
 	l.baseLogger.Error(msg, append(args, "error", err)...)
 }
 
-func (l *Logger) InfoContext(ctx context.Context, msg string, args ...any) {
-	l.Context(ctx).Info(msg, args...)
-}
-func (l *Logger) DebugContext(ctx context.Context, msg string, args ...any) {
-	l.Context(ctx).Debug(msg, args...)
-}
-func (l *Logger) WarnContext(ctx context.Context, msg string, args ...any) {
-	l.Context(ctx).Warn(msg, args...)
-}
-func (l *Logger) ErrorContext(ctx context.Context, msg string, err error, args ...any) {
-	l.Context(ctx).Error(msg, append(args, "error", err)...)
-}
-
 func Info(msg string, args ...any)  { GetGlobalLogger().Info(msg, args...) }
 func Debug(msg string, args ...any) { GetGlobalLogger().Debug(msg, args...) }
 func Warn(msg string, args ...any)  { GetGlobalLogger().Warn(msg, args...) }
 func Error(msg string, err error, args ...any) {
 	GetGlobalLogger().Error(msg, err, args...)
 }
-func WithFields(ctx context.Context, fields ...any) context.Context {
-	return GetGlobalLogger().WithContext(ctx, fields...)
-}
-
-// --- Internal helpers ---
 
 func parseLevel(s string) slog.Level {
 	switch strings.ToLower(s) {

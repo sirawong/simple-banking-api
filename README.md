@@ -1,6 +1,8 @@
 # Simple Banking API
 
-A production-ready RESTful banking API built with Go, Gin, GORM, and PostgreSQL. Supports account management, deposits, withdrawals, and transfers with full ACID compliance, Redis caching, JWT authentication, and comprehensive test coverage.
+A production-ready RESTful banking API built with Go, Gin, GORM, and PostgreSQL. Supports account management, deposits,
+withdrawals, and transfers with full ACID compliance, Redis caching, JWT authentication, and comprehensive test
+coverage.
 
 ---
 
@@ -8,6 +10,7 @@ A production-ready RESTful banking API built with Go, Gin, GORM, and PostgreSQL.
 
 - [Running Locally](#running-locally)
 - [Running with Docker Compose](#running-with-docker-compose)
+- [Try It Out](#try-it-out)
 - [Running Tests](#running-tests)
 - [API Reference](#api-reference)
 - [Tech Stack](#tech-stack)
@@ -16,7 +19,6 @@ A production-ready RESTful banking API built with Go, Gin, GORM, and PostgreSQL.
 - [Database Design](#database-design)
 - [Environment Variables](#environment-variables)
 - [Make Commands](#make-commands)
-- [Design Decisions](#design-decisions)
 
 ---
 
@@ -24,17 +26,18 @@ A production-ready RESTful banking API built with Go, Gin, GORM, and PostgreSQL.
 
 ### Prerequisites
 
-| Tool | Version | Install |
-|---|---|---|
-| Go | 1.25+ | https://go.dev/dl |
-| Docker | 24+ | https://docs.docker.com/get-docker |
-| Docker Compose | v2 (bundled with Docker Desktop) | https://docs.docker.com/compose/install |
-| `wire` | latest | `go install github.com/google/wire/cmd/wire@latest` |
-| `swag` | latest | `go install github.com/swaggo/swag/cmd/swag@latest` |
-| `mockery` | v2 | `go install github.com/vektra/mockery/v2@latest` |
-| `golangci-lint` | latest | https://golangci-lint.run/usage/install |
+| Tool            | Version                          | Install                                             |
+|-----------------|----------------------------------|-----------------------------------------------------|
+| Go              | 1.25+                            | https://go.dev/dl                                   |
+| Docker          | 24+                              | https://docs.docker.com/get-docker                  |
+| Docker Compose  | v2 (bundled with Docker Desktop) | https://docs.docker.com/compose/install             |
+| `wire`          | latest                           | `go install github.com/google/wire/cmd/wire@latest` |
+| `swag`          | latest                           | `go install github.com/swaggo/swag/cmd/swag@latest` |
+| `mockery`       | v2                               | `go install github.com/vektra/mockery/v2@latest`    |
+| `golangci-lint` | latest                           | https://golangci-lint.run/usage/install             |
 
-> `wire`, `swag`, `mockery`, and `golangci-lint` are only needed if you plan to modify and regenerate code. You can skip them just to run and explore the API.
+> `wire`, `swag`, `mockery`, and `golangci-lint` are only needed if you plan to modify and regenerate code. You can skip
+> them just to run and explore the API.
 
 ### Steps
 
@@ -47,7 +50,7 @@ cd simple-banking-api
 cp .env.example .env
 
 # 3. Start infrastructure (PostgreSQL + Redis)
-make docker-up
+docker compose up -d postgres redis
 
 # 4. Run database migrations
 make migrate
@@ -66,7 +69,7 @@ Swagger UI at **http://localhost:8080/swagger/index.html**
 
 ## Running with Docker Compose
 
-To run the entire stack (infrastructure + API) with a single command, uncomment the `migrate` and `api` services in `docker-compose.yml`, then:
+To run the entire stack (infrastructure + API) with a single command:
 
 ```bash
 # Build and start everything
@@ -79,20 +82,210 @@ make docker-logs
 make docker-down
 ```
 
-The `migrate` service runs first and exits on completion. The `api` service waits for `migrate` to complete before accepting traffic.
+The `migrate` service runs first and exits on completion. The `api` service waits for `migrate` to complete before
+accepting traffic.
 
 **Services:**
 
-| Service | Image | Port |
-|---|---|---|
-| `postgres` | postgres:15-alpine | 5432 |
-| `redis` | redis:7-alpine | 6379 |
-| `migrate` | Built from Dockerfile | — |
-| `api` | Built from Dockerfile | 8080 |
+| Service    | Image                 | Port |
+|------------|-----------------------|------|
+| `postgres` | postgres:15-alpine    | 5432 |
+| `redis`    | redis:7-alpine        | 6379 |
+| `migrate`  | Built from Dockerfile | —    |
+| `api`      | Built from Dockerfile | 8080 |
 
 The **Dockerfile** uses a multi-stage build:
+
 - **Stage 1 (builder):** `golang:1.25-alpine` — downloads dependencies and compiles both `api` and `migrate` binaries
 - **Stage 2 (runtime):** `alpine:3.19` — copies binaries only, resulting in a ~20 MB image
+
+---
+
+## Try It Out
+
+A complete walkthrough using `curl`. Steps 1–3 set up users and accounts — run them first, then try any scenario below independently.
+
+> **No `jq`?** Install it: `brew install jq` (macOS) / `apt install jq` (Ubuntu), or remove `| jq` from each command.
+
+---
+
+### Setup (run once)
+
+**Register two users**
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","password":"Password@123"}' | jq
+
+curl -s -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bob","email":"bob@example.com","password":"Password@123"}' | jq
+```
+
+**Login and save tokens**
+
+```bash
+ALICE_TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"Password@123"}' | jq -r '.accessToken')
+
+BOB_TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"bob@example.com","password":"Password@123"}' | jq -r '.accessToken')
+```
+
+**Create one account each**
+
+```bash
+ALICE_ACC=$(curl -s -X POST http://localhost:8080/api/v1/accounts \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"currency":"THB"}' | jq -r '.accountNumber')
+
+BOB_ACC=$(curl -s -X POST http://localhost:8080/api/v1/accounts \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"currency":"THB"}' | jq -r '.accountNumber')
+
+echo "Alice: $ALICE_ACC  |  Bob: $BOB_ACC"
+```
+
+---
+
+### Scenario 1 — Happy path (deposit → transfer → withdraw)
+
+```bash
+# Deposit 1,000 into Alice
+curl -s -X POST http://localhost:8080/api/v1/transactions/deposit \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"1000\"}" | jq
+
+# Transfer 300 from Alice to Bob
+curl -s -X POST http://localhost:8080/api/v1/transactions/transfer \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"fromAccountNumber\":\"$ALICE_ACC\",\"toAccountNumber\":\"$BOB_ACC\",\"amount\":\"300\"}" | jq
+
+# Bob withdraws 200
+curl -s -X POST http://localhost:8080/api/v1/transactions/withdraw \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"accountNumber\":\"$BOB_ACC\",\"amount\":\"200\"}" | jq
+
+# Final balances: Alice = 700, Bob = 100
+curl -s http://localhost:8080/api/v1/accounts/$ALICE_ACC \
+  -H "Authorization: Bearer $ALICE_TOKEN" | jq '.balance'
+curl -s http://localhost:8080/api/v1/accounts/$BOB_ACC \
+  -H "Authorization: Bearer $BOB_TOKEN" | jq '.balance'
+```
+
+---
+
+### Scenario 2 — Insufficient balance (expect 422)
+
+```bash
+# Try to withdraw more than Alice balance
+curl -s -X POST http://localhost:8080/api/v1/transactions/withdraw \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"999999\"}" | jq
+```
+
+Expected:
+```json
+{ "error_message": "Insufficient balance", "detail": "balance ... is less than requested amount 999999" }
+```
+
+---
+
+### Scenario 3 — Forbidden (access another user's account, expect 403)
+
+```bash
+# Bob tries to deposit into Alice account
+curl -s -X POST http://localhost:8080/api/v1/transactions/deposit \
+  -H "Authorization: Bearer $BOB_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"500\"}" | jq
+
+# Bob tries to read Alice balance
+curl -s http://localhost:8080/api/v1/accounts/$ALICE_ACC \
+  -H "Authorization: Bearer $BOB_TOKEN" | jq
+```
+
+Expected:
+```json
+{ "error_message": "Forbidden", "detail": "account ... does not belong to the authenticated user" }
+```
+
+---
+
+### Scenario 4 — Invalid token (expect 401)
+
+```bash
+curl -s http://localhost:8080/api/v1/accounts \
+  -H "Authorization: Bearer invalid.token.here" | jq
+```
+
+Expected:
+```json
+{ "error_message": "Invalid or expired token" }
+```
+
+---
+
+### Scenario 5 — Transfer to self (expect 400)
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/transactions/transfer \
+  -H "Authorization: Bearer $ALICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"fromAccountNumber\":\"$ALICE_ACC\",\"toAccountNumber\":\"$ALICE_ACC\",\"amount\":\"100\"}" | jq
+```
+
+Expected:
+```json
+{ "error_message": "From and to account must be different" }
+```
+
+---
+
+### Scenario 6 — Refresh token
+
+```bash
+# Login to get a refresh token
+ALICE_REFRESH=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"Password@123"}' | jq -r '.refreshToken')
+
+# Exchange for a new token pair
+curl -s -X POST http://localhost:8080/api/v1/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d "{\"refreshToken\":\"$ALICE_REFRESH\"}" | jq
+```
+
+---
+
+### Scenario 7 — Pagination on transaction history
+
+```bash
+# Deposit a few times first
+for i in 1 2 3 4 5; do
+  curl -s -X POST http://localhost:8080/api/v1/transactions/deposit \
+    -H "Authorization: Bearer $ALICE_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"$((i * 10))\"}" > /dev/null
+done
+
+# Page 1 — latest 3 transactions
+curl -s "http://localhost:8080/api/v1/accounts/$ALICE_ACC/transactions?page=1&limit=3" \
+  -H "Authorization: Bearer $ALICE_TOKEN" | jq '{total, page, limit, count: (.transactions | length)}'
+
+# Page 2
+curl -s "http://localhost:8080/api/v1/accounts/$ALICE_ACC/transactions?page=2&limit=3" \
+  -H "Authorization: Bearer $ALICE_TOKEN" | jq '{total, page, limit, count: (.transactions | length)}'
+```
 
 ---
 
@@ -100,7 +293,8 @@ The **Dockerfile** uses a multi-stage build:
 
 ### Unit Tests
 
-Unit tests live alongside service code in `internal/service/**/*_test.go`. All external dependencies are replaced by Mockery-generated mocks — no Docker required.
+Unit tests live alongside service code in `internal/service/**/*_test.go`. All external dependencies are replaced by
+Mockery-generated mocks — no Docker required.
 
 ```bash
 make test-unit
@@ -108,7 +302,9 @@ make test-unit
 
 ### Integration Tests
 
-Integration tests in `test/integration/` run against real PostgreSQL and Redis instances (started via `docker-compose.test.yml` on ports 5433 / 6380). Each test case runs in a clean state — all tables are truncated between tests.
+Integration tests in `test/integration/` run against real PostgreSQL and Redis instances (started via
+`docker-compose.test.yml` on ports 5433 / 6380). Each test case runs in a clean state — all tables are truncated between
+tests.
 
 ```bash
 # All tests: unit + integration
@@ -123,14 +319,14 @@ make test-cover
 
 ### Test Coverage Areas
 
-| Suite | Scenarios |
-|---|---|
-| `AuthSuite` | Register, login, token refresh, duplicate email, wrong password |
-| `AccountSuite` | Create, list, get balance, unauthorized access, forbidden (other user) |
-| `TransactionSuite` | Deposit, withdraw, transfer — success, insufficient balance, forbidden, same-account, balance updates |
-| `AccountServiceSuite` | Unit tests with mocks: create, balance (cache hit/miss), list, forbidden |
-| `TransactionServiceSuite` | Unit tests: deposit/withdraw/transfer error paths |
-| `AuthServiceSuite` | Unit tests: register, login, refresh token flows |
+| Suite                     | Scenarios                                                                                             |
+|---------------------------|-------------------------------------------------------------------------------------------------------|
+| `AuthSuite`               | Register, login, token refresh, duplicate email, wrong password                                       |
+| `AccountSuite`            | Create, list, get balance, unauthorized access, forbidden (other user)                                |
+| `TransactionSuite`        | Deposit, withdraw, transfer — success, insufficient balance, forbidden, same-account, balance updates |
+| `AccountServiceSuite`     | Unit tests with mocks: create, balance (cache hit/miss), list, forbidden                              |
+| `TransactionServiceSuite` | Unit tests: deposit/withdraw/transfer error paths                                                     |
+| `AuthServiceSuite`        | Unit tests: register, login, refresh token flows                                                      |
 
 ---
 
@@ -141,6 +337,7 @@ make test-cover
 **Swagger UI:** `http://localhost:8080/swagger/index.html`
 
 Protected endpoints require:
+
 ```
 Authorization: Bearer <access_token>
 ```
@@ -150,11 +347,13 @@ Authorization: Bearer <access_token>
 ### Auth
 
 #### `POST /auth/register`
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name": "Alice", "email": "alice@example.com", "password": "Password@123"}'
 ```
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -165,11 +364,13 @@ curl -X POST http://localhost:8080/api/v1/auth/register \
 ```
 
 #### `POST /auth/login`
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "alice@example.com", "password": "Password@123"}'
 ```
+
 ```json
 {
   "accessToken": "<jwt>",
@@ -180,11 +381,13 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 ```
 
 #### `POST /auth/refresh`
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken": "<opaque-token>"}'
 ```
+
 Returns a new token pair identical to the login response.
 
 ---
@@ -192,12 +395,14 @@ Returns a new token pair identical to the login response.
 ### Accounts _(requires auth)_
 
 #### `POST /accounts` — Create account
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/accounts \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"currency": "THB"}'
 ```
+
 ```json
 {
   "userId": "550e8400-...",
@@ -208,16 +413,19 @@ curl -X POST http://localhost:8080/api/v1/accounts \
 ```
 
 #### `GET /accounts` — List my accounts
+
 ```bash
 curl http://localhost:8080/api/v1/accounts \
   -H "Authorization: Bearer <token>"
 ```
 
 #### `GET /accounts/:accountNumber` — Get balance
+
 ```bash
 curl http://localhost:8080/api/v1/accounts/4831927560 \
   -H "Authorization: Bearer <token>"
 ```
+
 ```json
 {
   "accountNumber": "4831927560",
@@ -226,10 +434,12 @@ curl http://localhost:8080/api/v1/accounts/4831927560 \
 ```
 
 #### `GET /accounts/:accountNumber/transactions` — List transactions
+
 ```bash
 curl "http://localhost:8080/api/v1/accounts/4831927560/transactions?page=1&limit=20" \
   -H "Authorization: Bearer <token>"
 ```
+
 ```json
 {
   "transactions": [
@@ -253,6 +463,7 @@ curl "http://localhost:8080/api/v1/accounts/4831927560/transactions?page=1&limit
 ### Transactions _(requires auth)_
 
 #### `POST /transactions/deposit`
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/transactions/deposit \
   -H "Authorization: Bearer <token>" \
@@ -261,6 +472,7 @@ curl -X POST http://localhost:8080/api/v1/transactions/deposit \
 ```
 
 #### `POST /transactions/withdraw`
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/transactions/withdraw \
   -H "Authorization: Bearer <token>" \
@@ -269,6 +481,7 @@ curl -X POST http://localhost:8080/api/v1/transactions/withdraw \
 ```
 
 #### `POST /transactions/transfer`
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/transactions/transfer \
   -H "Authorization: Bearer <token>" \
@@ -281,6 +494,7 @@ curl -X POST http://localhost:8080/api/v1/transactions/transfer \
 ```
 
 Transaction response shape:
+
 ```json
 {
   "id": "...",
@@ -299,39 +513,39 @@ All errors follow a consistent format with an appropriate HTTP status code:
 
 ```json
 {
-  "message": "insufficient balance",
+  "error_message": "Insufficient balance",
   "detail": "balance 50 is less than requested amount 200"
 }
 ```
 
-| HTTP Status | Scenario |
-|---|---|
-| 400 | Invalid request body / same-account transfer |
-| 401 | Missing or invalid JWT |
-| 403 | Account belongs to another user |
-| 404 | Account or user not found |
-| 409 | Duplicate account (same user + currency) |
-| 422 | Insufficient balance |
-| 500 | Internal server error |
+| HTTP Status | Scenario                                     |
+|-------------|----------------------------------------------|
+| 400         | Invalid request body / same-account transfer |
+| 401         | Missing or invalid JWT                       |
+| 403         | Account belongs to another user              |
+| 404         | Account or user not found                    |
+| 409         | Duplicate account (same user + currency)     |
+| 422         | Insufficient balance                         |
+| 500         | Internal server error                        |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Language | Go 1.25 | |
-| Web Framework | [Gin](https://github.com/gin-gonic/gin) v1.10 | HTTP routing, middleware, binding |
-| ORM | [GORM](https://gorm.io) v1.25 + `gorm.io/driver/postgres` | Database access, AutoMigrate |
-| Database | PostgreSQL 15 | Persistent storage |
-| Cache | Redis 7 + [go-redis](https://github.com/redis/go-redis) v9 | Balance caching |
-| Authentication | [golang-jwt/jwt](https://github.com/golang-jwt/jwt) v5 (HS256) + bcrypt | Auth & password hashing |
-| Dependency Injection | [Google Wire](https://github.com/google/wire) v0.6 | Compile-time DI |
-| Decimal | [shopspring/decimal](https://github.com/shopspring/decimal) v1.4 | Precision money arithmetic |
-| Validation | [go-playground/validator](https://github.com/go-playground/validator) v10 | Request validation |
-| Docs | [Swaggo](https://github.com/swaggo/swag) | Swagger UI |
-| Testing | [Testify](https://github.com/stretchr/testify) + [Mockery](https://github.com/vektra/mockery) | Unit & integration tests |
-| Logging | slog (Go stdlib) | Structured logging |
+| Layer                | Technology                                                                                    | Purpose                           |
+|----------------------|-----------------------------------------------------------------------------------------------|-----------------------------------|
+| Language             | Go 1.25                                                                                       |                                   |
+| Web Framework        | [Gin](https://github.com/gin-gonic/gin) v1.12                                                 | HTTP routing, middleware, binding |
+| ORM                  | [GORM](https://gorm.io) v1.31 + `gorm.io/driver/postgres`                                     | Database access, AutoMigrate      |
+| Database             | PostgreSQL 15                                                                                 | Persistent storage                |
+| Cache                | Redis 7 + [go-redis](https://github.com/redis/go-redis) v9                                    | Balance caching                   |
+| Authentication       | [golang-jwt/jwt](https://github.com/golang-jwt/jwt) v5 (HS256) + bcrypt                       | Auth & password hashing           |
+| Dependency Injection | [Google Wire](https://github.com/google/wire) v0.7                                            | Compile-time DI                   |
+| Decimal              | [shopspring/decimal](https://github.com/shopspring/decimal) v1.4                              | Precision money arithmetic        |
+| Validation           | [go-playground/validator](https://github.com/go-playground/validator) v10                     | Request validation                |
+| Docs                 | [Swaggo](https://github.com/swaggo/swag)                                                      | Swagger UI                        |
+| Testing              | [Testify](https://github.com/stretchr/testify) + [Mockery](https://github.com/vektra/mockery) | Unit & integration tests          |
+| Logging              | slog (Go stdlib)                                                                              | Structured logging                |
 
 ---
 
@@ -369,7 +583,8 @@ HTTP Request
 └─────────────────────────────────┘
 ```
 
-**Dependency Injection** is handled by Google Wire — all wiring is generated at compile time. No service locators or runtime reflection.
+**Dependency Injection** is handled by Google Wire — all wiring is generated at compile time. No service locators or
+runtime reflection.
 
 ---
 
@@ -463,54 +678,58 @@ users ──< refresh_tokens
 ### Tables
 
 #### `users`
-| Column | Type | Constraints |
-|---|---|---|
-| `id` | UUID | PK |
-| `name` | varchar | not null |
-| `email` | varchar | not null, unique |
-| `password_hash` | varchar | not null (bcrypt) |
-| `created_at` | timestamp | auto |
-| `updated_at` | timestamp | auto |
-| `deleted_at` | timestamp | null (soft delete) |
+
+| Column          | Type      | Constraints        |
+|-----------------|-----------|--------------------|
+| `id`            | UUID      | PK                 |
+| `name`          | varchar   | not null           |
+| `email`         | varchar   | not null, unique   |
+| `password_hash` | varchar   | not null (bcrypt)  |
+| `created_at`    | timestamp | auto               |
+| `updated_at`    | timestamp | auto               |
+| `deleted_at`    | timestamp | null (soft delete) |
 
 #### `accounts`
-| Column | Type | Constraints |
-|---|---|---|
-| `id` | UUID | PK |
-| `user_id` | UUID | FK → users, indexed |
-| `account_number` | varchar | not null, unique |
-| `balance` | decimal(20,2) | not null, default 0 |
-| `currency` | varchar | not null, default 'THB' |
-| `created_at` | timestamp | auto |
-| `updated_at` | timestamp | auto |
-| `deleted_at` | timestamp | null (soft delete) |
+
+| Column           | Type          | Constraints             |
+|------------------|---------------|-------------------------|
+| `id`             | UUID          | PK                      |
+| `user_id`        | UUID          | FK → users, indexed     |
+| `account_number` | varchar       | not null, unique        |
+| `balance`        | decimal(20,2) | not null, default 0     |
+| `currency`       | varchar       | not null, default 'THB' |
+| `created_at`     | timestamp     | auto                    |
+| `updated_at`     | timestamp     | auto                    |
+| `deleted_at`     | timestamp     | null (soft delete)      |
 
 #### `transactions`
-| Column | Type | Constraints |
-|---|---|---|
-| `id` | UUID | PK |
-| `from_account_id` | UUID | nullable, FK → accounts, indexed |
-| `to_account_id` | UUID | nullable, FK → accounts, indexed |
-| `amount` | decimal(20,2) | not null |
-| `type` | varchar(20) | `deposit` \| `withdraw` \| `transfer` |
-| `status` | varchar(20) | `pending` \| `success` \| `failed` |
-| `note` | text | nullable |
-| `created_at` | timestamp | auto, indexed |
 
-| Operation | `from_account_id` | `to_account_id` |
-|---|---|---|
-| deposit | null | destination account |
-| withdraw | source account | null |
-| transfer | source account | destination account |
+| Column            | Type          | Constraints                           |
+|-------------------|---------------|---------------------------------------|
+| `id`              | UUID          | PK                                    |
+| `from_account_id` | UUID          | nullable, FK → accounts, indexed      |
+| `to_account_id`   | UUID          | nullable, FK → accounts, indexed      |
+| `amount`          | decimal(20,2) | not null                              |
+| `type`            | varchar(20)   | `deposit` \| `withdraw` \| `transfer` |
+| `status`          | varchar(20)   | `pending` \| `success` \| `failed`    |
+| `note`            | text          | nullable                              |
+| `created_at`      | timestamp     | auto, indexed                         |
+
+| Operation | `from_account_id` | `to_account_id`     |
+|-----------|-------------------|---------------------|
+| deposit   | null              | destination account |
+| withdraw  | source account    | null                |
+| transfer  | source account    | destination account |
 
 #### `refresh_tokens`
-| Column | Type | Constraints |
-|---|---|---|
-| `id` | UUID | PK |
-| `user_id` | UUID | FK → users, indexed |
-| `token` | varchar | not null, unique |
-| `expires_at` | timestamp | not null |
-| `created_at` | timestamp | auto |
+
+| Column       | Type      | Constraints         |
+|--------------|-----------|---------------------|
+| `id`         | UUID      | PK                  |
+| `user_id`    | UUID      | FK → users, indexed |
+| `token`      | varchar   | not null, unique    |
+| `expires_at` | timestamp | not null            |
+| `created_at` | timestamp | auto                |
 
 ---
 
@@ -575,28 +794,3 @@ make tidy             go mod tidy
 make fmt              gofmt -w .
 make lint             golangci-lint run
 ```
-
----
-
-## Design Decisions
-
-### Decimal arithmetic for money
-All amounts use `github.com/shopspring/decimal` and are stored as `DECIMAL(20,2)` in PostgreSQL. This avoids floating-point precision errors inherent in `float64` (e.g. `0.1 + 0.2 ≠ 0.3` in IEEE 754).
-
-### Pessimistic locking on transfers
-`FindByAccountNumberForUpdate` issues `SELECT … FOR UPDATE` (via GORM's `Clauses(clause.Locking{Strength: "UPDATE"})`) inside a database transaction. This acquires a row-level lock on both account rows before modifying balances, preventing lost updates under concurrent transfers to the same accounts.
-
-### Redis balance cache
-`GET /accounts/:accountNumber` is a hot read path. The balance is cached in Redis with a 60-second TTL and immediately invalidated on any mutating operation (deposit, withdraw, transfer). Cache misses fall back to PostgreSQL transparently.
-
-### Authorization at the service layer
-Ownership checks (`account.UserID == callerID`) live in the service, not the handler. This keeps business rules centralized and ensures they cannot be bypassed regardless of how the service is invoked.
-
-### Transaction context propagation
-`TxManager.Transaction(ctx, fn)` stores the GORM `*DB` (with the active transaction) in the context. Repository methods that must run inside a transaction call `requireTx(ctx)` to enforce this at runtime — they fail immediately if called outside a transaction, making misuse detectable rather than silently corrupting data.
-
-### Account number as the public identifier
-All public-facing responses use the human-readable `accountNumber` (e.g. `"4831927560"`) instead of internal UUIDs. This keeps the API surface stable and avoids leaking internal implementation details.
-
-### Structured error types
-`AppError` carries both an HTTP status code and a machine-readable `message`. Services return sentinel errors (`errs.ErrAccountNotFound`, `errs.ErrInsufficientBalance`, etc.); the handler maps them to HTTP responses. `.New("…")` adds a human-readable `detail` without changing the sentinel identity, so `errors.Is` matching still works across the call stack.

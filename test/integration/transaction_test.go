@@ -15,8 +15,6 @@ type TransactionSuite struct{ BaseSuite }
 
 func TestTransactionSuite(t *testing.T) { suite.Run(t, new(TransactionSuite)) }
 
-// --- Deposit ---
-
 func (s *TransactionSuite) TestDeposit_Success() {
 	user := s.seedUser("Alice", "alice@example.com", "Password@123")
 	acc := s.seedAccount(user, "THB")
@@ -73,8 +71,6 @@ func (s *TransactionSuite) TestDeposit_UpdatesBalance() {
 	s.decodeBody(w, &body)
 	s.Equal("350", body.Balance.String())
 }
-
-// --- Withdraw ---
 
 func (s *TransactionSuite) TestWithdraw_Success() {
 	user := s.seedUser("Alice", "alice@example.com", "Password@123")
@@ -144,8 +140,6 @@ func (s *TransactionSuite) TestWithdraw_UpdatesBalance() {
 	s.decodeBody(w, &body)
 	s.Equal("350", body.Balance.String())
 }
-
-// --- Transfer ---
 
 func (s *TransactionSuite) TestTransfer_Success() {
 	alice := s.seedUser("Alice", "alice@example.com", "Password@123")
@@ -247,8 +241,6 @@ func (s *TransactionSuite) TestTransfer_ToAccountNotFound() {
 
 	s.Equal(http.StatusNotFound, w.Code)
 }
-
-// --- Transaction list after operations ---
 
 func (s *TransactionSuite) TestListTransactions_AfterDeposit() {
 	user := s.seedUser("Alice", "alice@example.com", "Password@123")
