@@ -1,4 +1,4 @@
-.PHONY: run build migrate gen gen-wire gen-mock gen-swagger test test-unit test-cover test-integration docker-up docker-down docker-logs tidy fmt lint help
+.PHONY: run build migrate gen gen-wire gen-mock gen-swagger test test-unit test-cover test-integration test-up test-down docker-up docker-down docker-logs tidy fmt lint help
 
 run:
 	go run ./cmd/api
@@ -23,7 +23,7 @@ gen-swagger:
 test-unit:
 	go test $(shell go list ./... | grep -v /test/integration) -race -count=1
 
-test:
+test: test-down
 	docker compose -f docker-compose.test.yml up -d --wait
 	go test ./... -race -count=1; \
 	docker compose -f docker-compose.test.yml down
@@ -37,6 +37,12 @@ test-cover:
 test-integration:
 	docker compose -f docker-compose.test.yml up -d --wait
 	go test ./test/integration/... -v -race -count=1; \
+	docker compose -f docker-compose.test.yml down
+
+test-up:
+	docker compose -f docker-compose.test.yml up -d --wait
+
+test-down:
 	docker compose -f docker-compose.test.yml down
 
 docker-up:

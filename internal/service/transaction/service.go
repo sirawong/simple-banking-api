@@ -11,6 +11,7 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	cacherepo "github.com/sirawong/simple-banking-api/internal/repository/cache"
 	dbrepo "github.com/sirawong/simple-banking-api/internal/repository/db"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 type Service interface {
@@ -48,6 +49,7 @@ func (s *service) Deposit(ctx context.Context, userID, accountNumber string, amo
 		return nil, errs.ErrAccountNotFound
 	}
 	if account.UserID.String() != userID {
+		logger.Warn("deposit forbidden", "userID", userID, "accountNumber", accountNumber)
 		return nil, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
 	}
 
@@ -61,6 +63,7 @@ func (s *service) Deposit(ctx context.Context, userID, accountNumber string, amo
 		return nil, err
 	}
 	tx.ToAccount = account
+	logger.Info("deposit success", "userID", userID, "accountNumber", accountNumber, "amount", amount)
 	return tx, nil
 }
 
@@ -70,9 +73,11 @@ func (s *service) Withdraw(ctx context.Context, userID, accountNumber string, am
 		return nil, err
 	}
 	if account.UserID.String() != userID {
+		logger.Warn("withdraw forbidden", "userID", userID, "accountNumber", accountNumber)
 		return nil, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
 	}
 	if account.Balance.LessThan(amount) {
+		logger.Warn("withdraw insufficient balance", "userID", userID, "accountNumber", accountNumber, "balance", account.Balance, "amount", amount)
 		return nil, errs.ErrInsufficientBalance.New("balance %s is less than requested amount %s", account.Balance, amount)
 	}
 
@@ -86,6 +91,7 @@ func (s *service) Withdraw(ctx context.Context, userID, accountNumber string, am
 		return nil, err
 	}
 	tx.FromAccount = account
+	logger.Info("withdraw success", "userID", userID, "accountNumber", accountNumber, "amount", amount)
 	return tx, nil
 }
 
@@ -141,6 +147,7 @@ func (s *service) Transfer(ctx context.Context, userID, fromAccountNumber, toAcc
 			return errs.ErrAccountNotFound
 		}
 		if from.UserID.String() != userID {
+			logger.Warn("transfer forbidden", "userID", userID, "fromAccountNumber", fromAccountNumber)
 			return errs.ErrForbidden.New("account %s does not belong to the authenticated user", fromAccountNumber)
 		}
 		to, err = s.accountRepo.FindByAccountNumberForUpdate(ctx, toAccountNumber)
@@ -149,6 +156,7 @@ func (s *service) Transfer(ctx context.Context, userID, fromAccountNumber, toAcc
 		}
 
 		if from.Balance.LessThan(amount) {
+			logger.Warn("transfer insufficient balance", "userID", userID, "fromAccountNumber", fromAccountNumber, "balance", from.Balance, "amount", amount)
 			return errs.ErrInsufficientBalance.New("balance %s is less than requested amount %s", from.Balance, amount)
 		}
 
@@ -182,6 +190,7 @@ func (s *service) Transfer(ctx context.Context, userID, fromAccountNumber, toAcc
 
 	tx.FromAccount = from
 	tx.ToAccount = to
+	logger.Info("transfer success", "userID", userID, "fromAccountNumber", fromAccountNumber, "toAccountNumber", toAccountNumber, "amount", amount)
 	return tx, nil
 }
 

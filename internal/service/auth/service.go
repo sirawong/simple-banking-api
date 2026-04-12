@@ -14,6 +14,7 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/utils"
 	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 	pkgjwt "github.com/sirawong/simple-banking-api/pkg/jwt"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 type Service interface {
@@ -50,19 +51,27 @@ func (s *service) Register(ctx context.Context, name, email, password string) (*
 		Email:        email,
 		PasswordHash: string(hash),
 	}
-	return s.userRepo.Create(ctx, user)
+	created, err := s.userRepo.Create(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("user registered", "email", email)
+	return created, nil
 }
 
 func (s *service) Login(ctx context.Context, email, password string) (*entity.TokenPair, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
+		logger.Warn("login failed: user not found", "email", email)
 		return nil, errs.ErrInvalidPassword
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		logger.Warn("login failed: wrong password", "email", email)
 		return nil, errs.ErrInvalidPassword
 	}
 
+	logger.Info("login success", "email", email, "userID", user.ID)
 	return s.issueTokenPair(ctx, user)
 }
 

@@ -14,6 +14,7 @@ import (
 	dbrepo "github.com/sirawong/simple-banking-api/internal/repository/db"
 	"github.com/sirawong/simple-banking-api/internal/utils"
 	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 type Service interface {
@@ -52,6 +53,7 @@ func (s *service) GetBalance(ctx context.Context, userID, accountNumber string) 
 		return decimal.Zero, errs.ErrAccountNotFound
 	}
 	if account.UserID.String() != userID {
+		logger.Warn("get balance forbidden", "userID", userID, "accountNumber", accountNumber)
 		return decimal.Zero, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
 	}
 

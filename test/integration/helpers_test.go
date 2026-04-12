@@ -77,7 +77,8 @@ func (s *BaseSuite) seedAccountWithBalance(user *entity.User, currency string, b
 	s.Require().NoError(
 		s.db.Model(m).Update("balance", balance).Error,
 	)
-	m.Balance.Scan(balance)
+	err := m.Balance.Scan(balance)
+	s.Require().NoError(err)
 	return m.ToDomain()
 }
 

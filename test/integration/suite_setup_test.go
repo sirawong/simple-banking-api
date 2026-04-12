@@ -24,11 +24,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	os.Setenv("ENV_FILE", "../../.env.test")
+	err := os.Setenv("ENV_FILE", "../../.env.test")
+	if err != nil {
+		panic("failed to get env file: " + err.Error())
+	}
 
 	ctx := context.Background()
 
-	var err error
 	sharedDB, err = testutil.StartTestDB(ctx)
 	if err != nil {
 		panic("failed to connect to test DB: " + err.Error())

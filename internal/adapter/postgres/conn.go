@@ -2,13 +2,13 @@ package adapterdb
 
 import (
 	"fmt"
-	"log"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 
 	"github.com/sirawong/simple-banking-api/internal/config"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 type DB struct {
@@ -46,11 +46,11 @@ func ProvideDB(cfg *config.Config) (*DB, func(), error) {
 	cleanup := func() {
 		sqlDB, err = db.DB()
 		if err != nil {
-			log.Printf("failed to get sql.DB for cleanup: %v", err)
+			logger.Warn("failed to get sql.DB for cleanup", "error", err)
 			return
 		}
 		if err = sqlDB.Close(); err != nil {
-			log.Printf("failed to close database connection: %v", err)
+			logger.Warn("failed to close database connection", "error", err)
 		}
 	}
 

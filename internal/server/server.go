@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/sirawong/simple-banking-api/internal/config"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 type App struct {
@@ -25,6 +26,7 @@ func ProvideServer(cfg *config.Config, handler http.Handler) *App {
 }
 
 func (a *App) Start() error {
+	logger.Info("server starting", "addr", a.httpServer.Addr)
 	return a.httpServer.ListenAndServe()
 }
 

@@ -3,11 +3,11 @@ package adapterredis
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/redis/go-redis/v9"
 
 	"github.com/sirawong/simple-banking-api/internal/config"
+	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
 
 // @wire:set(name=AdapterSet)
@@ -25,7 +25,7 @@ func ProvideRedisClient(cfg *config.Config) (*redis.Client, func(), error) {
 
 	cleanup := func() {
 		if err := rdb.Close(); err != nil {
-			log.Printf("failed to close redis connection: %v", err)
+			logger.Warn("failed to close redis connection", "error", err)
 		}
 	}
 
