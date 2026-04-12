@@ -21,4 +21,7 @@ var (
 	// Transaction
 	ErrInsufficientBalance = pkgerrs.Sentinel("Insufficient balance", http.StatusUnprocessableEntity)
 	ErrSameAccount         = pkgerrs.Sentinel("From and to account must be different", http.StatusBadRequest)
+
+	// Authorization
+	ErrForbidden = pkgerrs.Sentinel("Forbidden", http.StatusForbidden)
 )

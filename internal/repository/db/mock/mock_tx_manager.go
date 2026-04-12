@@ -37,12 +37,12 @@ func (_m *MockTxManager) EXPECT() *MockTxManager_Expecter {
 	return &MockTxManager_Expecter{mock: &_m.Mock}
 }
 
-// RunInTx provides a mock function for the type MockTxManager
-func (_mock *MockTxManager) RunInTx(ctx context.Context, fn func(ctx context.Context) error) error {
+// Transaction provides a mock function for the type MockTxManager
+func (_mock *MockTxManager) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	ret := _mock.Called(ctx, fn)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RunInTx")
+		panic("no return value specified for Transaction")
 	}
 
 	var r0 error
@@ -54,19 +54,19 @@ func (_mock *MockTxManager) RunInTx(ctx context.Context, fn func(ctx context.Con
 	return r0
 }
 
-// MockTxManager_RunInTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RunInTx'
-type MockTxManager_RunInTx_Call struct {
+// MockTxManager_Transaction_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Transaction'
+type MockTxManager_Transaction_Call struct {
 	*mock.Call
 }
 
-// RunInTx is a helper method to define mock.On call
+// Transaction is a helper method to define mock.On call
 //   - ctx context.Context
 //   - fn func(ctx context.Context) error
-func (_e *MockTxManager_Expecter) RunInTx(ctx interface{}, fn interface{}) *MockTxManager_RunInTx_Call {
-	return &MockTxManager_RunInTx_Call{Call: _e.mock.On("RunInTx", ctx, fn)}
+func (_e *MockTxManager_Expecter) Transaction(ctx interface{}, fn interface{}) *MockTxManager_Transaction_Call {
+	return &MockTxManager_Transaction_Call{Call: _e.mock.On("Transaction", ctx, fn)}
 }
 
-func (_c *MockTxManager_RunInTx_Call) Run(run func(ctx context.Context, fn func(ctx context.Context) error)) *MockTxManager_RunInTx_Call {
+func (_c *MockTxManager_Transaction_Call) Run(run func(ctx context.Context, fn func(ctx context.Context) error)) *MockTxManager_Transaction_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -84,12 +84,12 @@ func (_c *MockTxManager_RunInTx_Call) Run(run func(ctx context.Context, fn func(
 	return _c
 }
 
-func (_c *MockTxManager_RunInTx_Call) Return(err error) *MockTxManager_RunInTx_Call {
+func (_c *MockTxManager_Transaction_Call) Return(err error) *MockTxManager_Transaction_Call {
 	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockTxManager_RunInTx_Call) RunAndReturn(run func(ctx context.Context, fn func(ctx context.Context) error) error) *MockTxManager_RunInTx_Call {
+func (_c *MockTxManager_Transaction_Call) RunAndReturn(run func(ctx context.Context, fn func(ctx context.Context) error) error) *MockTxManager_Transaction_Call {
 	_c.Call.Return(run)
 	return _c
 }

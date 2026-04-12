@@ -39,20 +39,31 @@ func (_m *MockTransactionRepository) EXPECT() *MockTransactionRepository_Expecte
 }
 
 // Create provides a mock function for the type MockTransactionRepository
-func (_mock *MockTransactionRepository) Create(ctx context.Context, transaction *entity.Transaction) error {
+func (_mock *MockTransactionRepository) Create(ctx context.Context, transaction *entity.Transaction) (*entity.Transaction, error) {
 	ret := _mock.Called(ctx, transaction)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Transaction) error); ok {
+	var r0 *entity.Transaction
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Transaction) (*entity.Transaction, error)); ok {
+		return returnFunc(ctx, transaction)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Transaction) *entity.Transaction); ok {
 		r0 = returnFunc(ctx, transaction)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Transaction)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *entity.Transaction) error); ok {
+		r1 = returnFunc(ctx, transaction)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockTransactionRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
@@ -85,12 +96,12 @@ func (_c *MockTransactionRepository_Create_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockTransactionRepository_Create_Call) Return(err error) *MockTransactionRepository_Create_Call {
-	_c.Call.Return(err)
+func (_c *MockTransactionRepository_Create_Call) Return(transaction1 *entity.Transaction, err error) *MockTransactionRepository_Create_Call {
+	_c.Call.Return(transaction1, err)
 	return _c
 }
 
-func (_c *MockTransactionRepository_Create_Call) RunAndReturn(run func(ctx context.Context, transaction *entity.Transaction) error) *MockTransactionRepository_Create_Call {
+func (_c *MockTransactionRepository_Create_Call) RunAndReturn(run func(ctx context.Context, transaction *entity.Transaction) (*entity.Transaction, error)) *MockTransactionRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -35,8 +35,9 @@ func ProvideRouter(
 		{
 			accounts := protected.Group("/accounts")
 			accounts.POST("", accountHandler.CreateAccount)
-			accounts.GET("/:id", accountHandler.GetAccount)
-			accounts.GET("/:id/transactions", accountHandler.ListTransactions)
+			accounts.GET("", accountHandler.ListAccounts)
+			accounts.GET("/:accountNumber", accountHandler.GetAccount)
+			accounts.GET("/:accountNumber/transactions", accountHandler.ListTransactions)
 
 			transactions := protected.Group("/transactions")
 			transactions.POST("/deposit", txHandler.Deposit)

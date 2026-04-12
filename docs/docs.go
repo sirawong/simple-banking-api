@@ -16,7 +16,44 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/api/v1/accounts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List all accounts belonging to the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "List accounts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    }
+                }
+            },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new bank account for a user",
                 "consumes": [
                     "application/json"
@@ -67,8 +104,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/accounts/{id}": {
+        "/api/v1/accounts/{accountNumber}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get account details including balance",
                 "produces": [
                     "application/json"
@@ -80,8 +122,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Account ID",
-                        "name": "id",
+                        "description": "Account Number",
+                        "name": "accountNumber",
                         "in": "path",
                         "required": true
                     }
@@ -93,6 +135,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -102,8 +150,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/accounts/{id}/transactions": {
+        "/api/v1/accounts/{accountNumber}/transactions": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "List transactions for an account with pagination",
                 "produces": [
                     "application/json"
@@ -115,8 +168,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Account ID",
-                        "name": "id",
+                        "description": "Account Number",
+                        "name": "accountNumber",
                         "in": "path",
                         "required": true
                     },
@@ -138,6 +191,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
                     "404": {
@@ -283,6 +342,11 @@ const docTemplate = `{
         },
         "/api/v1/transactions/deposit": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Deposit money into an account",
                 "consumes": [
                     "application/json"
@@ -318,6 +382,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -329,6 +399,11 @@ const docTemplate = `{
         },
         "/api/v1/transactions/transfer": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Transfer money between accounts",
                 "consumes": [
                     "application/json"
@@ -364,6 +439,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -381,6 +462,11 @@ const docTemplate = `{
         },
         "/api/v1/transactions/withdraw": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Withdraw money from an account",
                 "consumes": [
                     "application/json"
@@ -412,6 +498,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError"
                         }
@@ -462,14 +554,10 @@ const docTemplate = `{
         "github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest": {
             "type": "object",
             "required": [
-                "currency",
-                "userId"
+                "currency"
             ],
             "properties": {
                 "currency": {
-                    "type": "string"
-                },
-                "userId": {
                     "type": "string"
                 }
             }
@@ -477,11 +565,11 @@ const docTemplate = `{
         "github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest": {
             "type": "object",
             "required": [
-                "accountId",
+                "accountNumber",
                 "amount"
             ],
             "properties": {
-                "accountId": {
+                "accountNumber": {
                     "type": "string"
                 },
                 "amount": {
@@ -539,17 +627,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "amount",
-                "fromAccountId",
-                "toAccountId"
+                "fromAccountNumber",
+                "toAccountNumber"
             ],
             "properties": {
                 "amount": {
                     "type": "number"
                 },
-                "fromAccountId": {
+                "fromAccountNumber": {
                     "type": "string"
                 },
-                "toAccountId": {
+                "toAccountNumber": {
                     "type": "string"
                 }
             }
@@ -557,11 +645,11 @@ const docTemplate = `{
         "github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest": {
             "type": "object",
             "required": [
-                "accountId",
+                "accountNumber",
                 "amount"
             ],
             "properties": {
-                "accountId": {
+                "accountNumber": {
                     "type": "string"
                 },
                 "amount": {
@@ -578,13 +666,7 @@ const docTemplate = `{
                 "balance": {
                     "type": "number"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
                 "currency": {
-                    "type": "string"
-                },
-                "id": {
                     "type": "string"
                 },
                 "userId": {
@@ -595,7 +677,7 @@ const docTemplate = `{
         "github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse": {
             "type": "object",
             "properties": {
-                "accountId": {
+                "accountNumber": {
                     "type": "string"
                 },
                 "balance": {
@@ -649,7 +731,7 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "fromAccountId": {
+                "fromAccountNumber": {
                     "type": "string"
                 },
                 "id": {
@@ -661,7 +743,7 @@ const docTemplate = `{
                 "status": {
                     "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus"
                 },
-                "toAccountId": {
+                "toAccountNumber": {
                     "type": "string"
                 },
                 "type": {
@@ -694,6 +776,14 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Enter: Bearer \u003caccess_token\u003e",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

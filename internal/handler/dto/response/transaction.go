@@ -11,29 +11,39 @@ import (
 )
 
 type TransactionResponse struct {
-	ID            uuid.UUID                   `json:"id"`
-	FromAccountID *uuid.UUID                  `json:"fromAccountId,omitempty"`
-	ToAccountID   uuid.UUID                   `json:"toAccountId"`
-	Amount        decimal.Decimal             `json:"amount"`
-	Type          constrant.TransactionType   `json:"type"`
-	Status        constrant.TransactionStatus `json:"status"`
-	Note          *string                     `json:"note,omitempty"`
-	CreatedAt     time.Time                   `json:"createdAt"`
+	ID                uuid.UUID                   `json:"id"`
+	FromAccountNumber *string                     `json:"fromAccountNumber,omitempty"`
+	ToAccountNumber   *string                     `json:"toAccountNumber,omitempty"`
+	Amount            decimal.Decimal             `json:"amount"`
+	Type              constrant.TransactionType   `json:"type"`
+	Status            constrant.TransactionStatus `json:"status"`
+	Note              *string                     `json:"note,omitempty"`
+	CreatedAt         time.Time                   `json:"createdAt"`
 }
 
 func FromEntityTransaction(t *entity.Transaction) *TransactionResponse {
 	if t == nil {
 		return nil
 	}
+	var (
+		fromAccountNumber *string
+		toAccountNumber   *string
+	)
+	if t.FromAccount != nil {
+		fromAccountNumber = &t.FromAccount.AccountNumber
+	}
+	if t.ToAccount != nil {
+		toAccountNumber = &t.ToAccount.AccountNumber
+	}
 	return &TransactionResponse{
-		ID:            t.ID,
-		FromAccountID: t.FromAccountID,
-		ToAccountID:   t.ToAccountID,
-		Amount:        t.Amount,
-		Type:          t.Type,
-		Status:        t.Status,
-		Note:          t.Note,
-		CreatedAt:     t.CreatedAt,
+		ID:                t.ID,
+		FromAccountNumber: fromAccountNumber,
+		ToAccountNumber:   toAccountNumber,
+		Amount:            t.Amount,
+		Type:              t.Type,
+		Status:            t.Status,
+		Note:              t.Note,
+		CreatedAt:         t.CreatedAt,
 	}
 }
 

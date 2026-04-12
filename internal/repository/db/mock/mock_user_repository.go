@@ -39,20 +39,31 @@ func (_m *MockUserRepository) EXPECT() *MockUserRepository_Expecter {
 }
 
 // Create provides a mock function for the type MockUserRepository
-func (_mock *MockUserRepository) Create(ctx context.Context, user *entity.User) error {
+func (_mock *MockUserRepository) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
 	ret := _mock.Called(ctx, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.User) error); ok {
+	var r0 *entity.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.User) (*entity.User, error)); ok {
+		return returnFunc(ctx, user)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.User) *entity.User); ok {
 		r0 = returnFunc(ctx, user)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.User)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *entity.User) error); ok {
+		r1 = returnFunc(ctx, user)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockUserRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
@@ -85,12 +96,12 @@ func (_c *MockUserRepository_Create_Call) Run(run func(ctx context.Context, user
 	return _c
 }
 
-func (_c *MockUserRepository_Create_Call) Return(err error) *MockUserRepository_Create_Call {
-	_c.Call.Return(err)
+func (_c *MockUserRepository_Create_Call) Return(user1 *entity.User, err error) *MockUserRepository_Create_Call {
+	_c.Call.Return(user1, err)
 	return _c
 }
 
-func (_c *MockUserRepository_Create_Call) RunAndReturn(run func(ctx context.Context, user *entity.User) error) *MockUserRepository_Create_Call {
+func (_c *MockUserRepository_Create_Call) RunAndReturn(run func(ctx context.Context, user *entity.User) (*entity.User, error)) *MockUserRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }

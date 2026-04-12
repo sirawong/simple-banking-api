@@ -39,20 +39,31 @@ func (_m *MockTokenRepository) EXPECT() *MockTokenRepository_Expecter {
 }
 
 // Create provides a mock function for the type MockTokenRepository
-func (_mock *MockTokenRepository) Create(ctx context.Context, token *entity.RefreshToken) error {
+func (_mock *MockTokenRepository) Create(ctx context.Context, token *entity.RefreshToken) (*entity.RefreshToken, error) {
 	ret := _mock.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.RefreshToken) error); ok {
+	var r0 *entity.RefreshToken
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.RefreshToken) (*entity.RefreshToken, error)); ok {
+		return returnFunc(ctx, token)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.RefreshToken) *entity.RefreshToken); ok {
 		r0 = returnFunc(ctx, token)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.RefreshToken)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *entity.RefreshToken) error); ok {
+		r1 = returnFunc(ctx, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockTokenRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
@@ -85,12 +96,12 @@ func (_c *MockTokenRepository_Create_Call) Run(run func(ctx context.Context, tok
 	return _c
 }
 
-func (_c *MockTokenRepository_Create_Call) Return(err error) *MockTokenRepository_Create_Call {
-	_c.Call.Return(err)
+func (_c *MockTokenRepository_Create_Call) Return(refreshToken *entity.RefreshToken, err error) *MockTokenRepository_Create_Call {
+	_c.Call.Return(refreshToken, err)
 	return _c
 }
 
-func (_c *MockTokenRepository_Create_Call) RunAndReturn(run func(ctx context.Context, token *entity.RefreshToken) error) *MockTokenRepository_Create_Call {
+func (_c *MockTokenRepository_Create_Call) RunAndReturn(run func(ctx context.Context, token *entity.RefreshToken) (*entity.RefreshToken, error)) *MockTokenRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -148,63 +159,6 @@ func (_c *MockTokenRepository_DeleteByToken_Call) Return(err error) *MockTokenRe
 }
 
 func (_c *MockTokenRepository_DeleteByToken_Call) RunAndReturn(run func(ctx context.Context, token string) error) *MockTokenRepository_DeleteByToken_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// DeleteByUserID provides a mock function for the type MockTokenRepository
-func (_mock *MockTokenRepository) DeleteByUserID(ctx context.Context, userID string) error {
-	ret := _mock.Called(ctx, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteByUserID")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, userID)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockTokenRepository_DeleteByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteByUserID'
-type MockTokenRepository_DeleteByUserID_Call struct {
-	*mock.Call
-}
-
-// DeleteByUserID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - userID string
-func (_e *MockTokenRepository_Expecter) DeleteByUserID(ctx interface{}, userID interface{}) *MockTokenRepository_DeleteByUserID_Call {
-	return &MockTokenRepository_DeleteByUserID_Call{Call: _e.mock.On("DeleteByUserID", ctx, userID)}
-}
-
-func (_c *MockTokenRepository_DeleteByUserID_Call) Run(run func(ctx context.Context, userID string)) *MockTokenRepository_DeleteByUserID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockTokenRepository_DeleteByUserID_Call) Return(err error) *MockTokenRepository_DeleteByUserID_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockTokenRepository_DeleteByUserID_Call) RunAndReturn(run func(ctx context.Context, userID string) error) *MockTokenRepository_DeleteByUserID_Call {
 	_c.Call.Return(run)
 	return _c
 }

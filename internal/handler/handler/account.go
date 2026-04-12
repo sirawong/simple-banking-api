@@ -3,6 +3,8 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/sirawong/simple-banking-api/internal/utils"
+
 	dtoreq "github.com/sirawong/simple-banking-api/internal/handler/dto/request"
 	dtores "github.com/sirawong/simple-banking-api/internal/handler/dto/response"
 	"github.com/sirawong/simple-banking-api/internal/service/account"
@@ -31,16 +33,41 @@ func ProvideAccountHandler(accountSvc account.Service, txSvc transaction.Service
 // @Failure      400   {object}  errs.AppError
 // @Failure      409   {object}  errs.AppError
 // @Failure      500   {object}  errs.AppError
+// @Security     BearerAuth
 // @Router       /api/v1/accounts [post]
 func (h *AccountHandler) CreateAccount(c *gin.Context) {
+	authUser, ok := utils.MustGetAuthUser(c)
+	if !ok {
+		return
+	}
+
 	var req dtoreq.CreateAccountRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		dtores.HandleCreatedResponse(c, nil, err)
 		return
 	}
 
-	acct, err := h.accountSvc.CreateAccount(c.Request.Context(), req.UserID, req.Currency)
+	acct, err := h.accountSvc.CreateAccount(c.Request.Context(), authUser.ID, req.Currency)
 	dtores.HandleCreatedResponse(c, dtores.FromEntityAccount(acct), err)
+}
+
+// ListAccounts godoc
+// @Summary      List accounts
+// @Description  List all accounts belonging to the authenticated user
+// @Tags         accounts
+// @Produce      json
+// @Success      200  {array}   dtores.AccountResponse
+// @Failure      401  {object}  errs.AppError
+// @Security     BearerAuth
+// @Router       /api/v1/accounts [get]
+func (h *AccountHandler) ListAccounts(c *gin.Context) {
+	authUser, ok := utils.MustGetAuthUser(c)
+	if !ok {
+		return
+	}
+
+	accounts, err := h.accountSvc.ListAccounts(c.Request.Context(), authUser.ID)
+	dtores.HandleResponse(c, dtores.FromEntityAccounts(accounts), err)
 }
 
 // GetAccount godoc
@@ -48,18 +75,25 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 // @Description  Get account details including balance
 // @Tags         accounts
 // @Produce      json
-// @Param        id   path      string  true  "Account ID"
-// @Success      200  {object}  dtores.BalanceResponse
-// @Failure      404  {object}  errs.AppError
-// @Router       /api/v1/accounts/{id} [get]
+// @Param        accountNumber  path      string  true  "Account Number"
+// @Success      200            {object}  dtores.BalanceResponse
+// @Failure      403            {object}  errs.AppError
+// @Failure      404            {object}  errs.AppError
+// @Security     BearerAuth
+// @Router       /api/v1/accounts/{accountNumber} [get]
 func (h *AccountHandler) GetAccount(c *gin.Context) {
-	id := c.Param("id")
-	balance, err := h.accountSvc.GetBalance(c.Request.Context(), id)
+	authUser, ok := utils.MustGetAuthUser(c)
+	if !ok {
+		return
+	}
+
+	accountNumber := c.Param("accountNumber")
+	balance, err := h.accountSvc.GetBalance(c.Request.Context(), authUser.ID, accountNumber)
 	if err != nil {
 		dtores.HandleResponse(c, nil, err)
 		return
 	}
-	dtores.HandleResponse(c, dtores.BalanceResponse{AccountID: id, Balance: balance}, nil)
+	dtores.HandleResponse(c, dtores.BalanceResponse{AccountNumber: accountNumber, Balance: balance}, nil)
 }
 
 // ListTransactions godoc
@@ -67,21 +101,28 @@ func (h *AccountHandler) GetAccount(c *gin.Context) {
 // @Description  List transactions for an account with pagination
 // @Tags         accounts
 // @Produce      json
-// @Param        id     path      string  true   "Account ID"
-// @Param        page   query     int     false  "Page number"
-// @Param        limit  query     int     false  "Page size"
-// @Success      200    {object}  dtores.TransactionListResponse
-// @Failure      404    {object}  errs.AppError
-// @Router       /api/v1/accounts/{id}/transactions [get]
+// @Param        accountNumber  path      string  true   "Account Number"
+// @Param        page           query     int     false  "Page number"
+// @Param        limit          query     int     false  "Page size"
+// @Success      200            {object}  dtores.TransactionListResponse
+// @Failure      403            {object}  errs.AppError
+// @Failure      404            {object}  errs.AppError
+// @Security     BearerAuth
+// @Router       /api/v1/accounts/{accountNumber}/transactions [get]
 func (h *AccountHandler) ListTransactions(c *gin.Context) {
-	id := c.Param("id")
+	authUser, ok := utils.MustGetAuthUser(c)
+	if !ok {
+		return
+	}
+
+	accountNumber := c.Param("accountNumber")
 	var req dtoreq.ListTransactionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		dtores.HandleResponse(c, nil, err)
 		return
 	}
 
-	txs, total, err := h.txSvc.ListByAccount(c.Request.Context(), id, req.Page, req.Limit)
+	txs, total, err := h.txSvc.ListByAccount(c.Request.Context(), authUser.ID, accountNumber, req.Page, req.Limit)
 	if err != nil {
 		dtores.HandleResponse(c, nil, err)
 		return

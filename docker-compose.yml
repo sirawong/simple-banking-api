@@ -1,18 +1,26 @@
-version: "3.9"
-
 services:
-  api:
-    build: .
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
-    restart: on-failure
+#  migrate:
+#    build: .
+#    command: ["./migrate"]
+#    env_file:
+#      - .env
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    restart: on-failure
+#
+#  api:
+#    build: .
+#    ports:
+#      - "8080:8080"
+#    env_file:
+#      - .env
+#    depends_on:
+#      migrate:
+#        condition: service_completed_successfully
+#      redis:
+#        condition: service_started
+#    restart: on-failure
 
   postgres:
     image: postgres:15-alpine
@@ -32,6 +40,10 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: >
+      sh -c '[ -n "$$REDIS_PASSWORD" ] && exec redis-server --requirepass "$$REDIS_PASSWORD" || exec redis-server'
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     ports:
       - "6379:6379"
     restart: on-failure

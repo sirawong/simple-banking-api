@@ -2,8 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +11,7 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	dbrepo "github.com/sirawong/simple-banking-api/internal/repository/db"
+	"github.com/sirawong/simple-banking-api/internal/utils"
 	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 	pkgjwt "github.com/sirawong/simple-banking-api/pkg/jwt"
 )
@@ -51,10 +50,7 @@ func (s *service) Register(ctx context.Context, name, email, password string) (*
 		Email:        email,
 		PasswordHash: string(hash),
 	}
-	if err := s.userRepo.Create(ctx, user); err != nil {
-		return nil, err
-	}
-	return user, nil
+	return s.userRepo.Create(ctx, user)
 }
 
 func (s *service) Login(ctx context.Context, email, password string) (*entity.TokenPair, error) {
@@ -63,7 +59,7 @@ func (s *service) Login(ctx context.Context, email, password string) (*entity.To
 		return nil, errs.ErrInvalidPassword
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		return nil, errs.ErrInvalidPassword
 	}
 
@@ -81,7 +77,7 @@ func (s *service) RefreshToken(ctx context.Context, refreshToken string) (*entit
 		return nil, pkgerrs.ErrInvalidToken
 	}
 
-	if err := s.tokenRepo.DeleteByToken(ctx, refreshToken); err != nil {
+	if err = s.tokenRepo.DeleteByToken(ctx, refreshToken); err != nil {
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 
@@ -94,7 +90,7 @@ func (s *service) issueTokenPair(ctx context.Context, user *entity.User) (*entit
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 
-	rawRefresh, err := generateOpaqueToken()
+	rawRefresh, err := utils.GenerateOpaqueToken()
 	if err != nil {
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
@@ -105,7 +101,7 @@ func (s *service) issueTokenPair(ctx context.Context, user *entity.User) (*entit
 		Token:     rawRefresh,
 		ExpiresAt: time.Now().Add(s.refreshTTL),
 	}
-	if err := s.tokenRepo.Create(ctx, rt); err != nil {
+	if _, err = s.tokenRepo.Create(ctx, rt); err != nil {
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 
@@ -114,13 +110,4 @@ func (s *service) issueTokenPair(ctx context.Context, user *entity.User) (*entit
 		RefreshToken: rawRefresh,
 		ExpiresIn:    int64(s.jwtManager.TTL().Seconds()),
 	}, nil
-}
-
-// generateOpaqueToken generates a cryptographically random token for use as a refresh token.
-func generateOpaqueToken() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(b), nil
 }

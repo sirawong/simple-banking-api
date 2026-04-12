@@ -29,7 +29,7 @@ func ProvideTxManager(db *adapterdb.DB) TxManager {
 	return &gormTxManager{db: db}
 }
 
-func (m *gormTxManager) RunInTx(ctx context.Context, fn func(ctx context.Context) error) error {
+func (m *gormTxManager) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	return dbFromCtx(ctx, m.db).Transaction(func(gormTx *gorm.DB) error {
 		return fn(context.WithValue(ctx, txContextKey{}, gormTx))
 	})

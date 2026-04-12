@@ -13,14 +13,14 @@ import (
 type Transaction struct {
 	ID            uuid.UUID                   `gorm:"type:uuid;primaryKey"`
 	FromAccountID *uuid.UUID                  `gorm:"type:uuid;index"`
-	ToAccountID   uuid.UUID                   `gorm:"type:uuid;index;not null"`
+	ToAccountID   *uuid.UUID                  `gorm:"type:uuid;index"`
 	Amount        decimal.Decimal             `gorm:"type:decimal(20,2);not null"`
 	Type          constrant.TransactionType   `gorm:"type:varchar(20);not null"`
 	Status        constrant.TransactionStatus `gorm:"type:varchar(20);not null;default:pending"`
 	Note          *string                     `gorm:"type:text"`
 	CreatedAt     time.Time
 	FromAccount   *Account `gorm:"foreignKey:FromAccountID"`
-	ToAccount     Account  `gorm:"foreignKey:ToAccountID"`
+	ToAccount     *Account `gorm:"foreignKey:ToAccountID"`
 }
 
 func (Transaction) TableName() string {
@@ -41,7 +41,7 @@ func (t *Transaction) ToEntity() *entity.Transaction {
 		Note:          t.Note,
 		CreatedAt:     t.CreatedAt,
 		FromAccount:   t.FromAccount.ToDomain(),
-		ToAccount:     *t.ToAccount.ToDomain(),
+		ToAccount:     t.ToAccount.ToDomain(),
 	}
 }
 
@@ -72,6 +72,6 @@ func FromEntityTransaction(t *entity.Transaction) *Transaction {
 		Note:          t.Note,
 		CreatedAt:     t.CreatedAt,
 		FromAccount:   FromEntityAccount(t.FromAccount),
-		ToAccount:     *FromEntityAccount(&t.ToAccount),
+		ToAccount:     FromEntityAccount(t.ToAccount),
 	}
 }

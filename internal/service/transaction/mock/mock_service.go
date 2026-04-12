@@ -40,8 +40,8 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 }
 
 // Deposit provides a mock function for the type MockService
-func (_mock *MockService) Deposit(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error) {
-	ret := _mock.Called(ctx, accountID, amount)
+func (_mock *MockService) Deposit(ctx context.Context, userID string, accountNumber string, amount decimal.Decimal) (*entity.Transaction, error) {
+	ret := _mock.Called(ctx, userID, accountNumber, amount)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Deposit")
@@ -49,18 +49,18 @@ func (_mock *MockService) Deposit(ctx context.Context, accountID string, amount 
 
 	var r0 *entity.Transaction
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, decimal.Decimal) (*entity.Transaction, error)); ok {
-		return returnFunc(ctx, accountID, amount)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, decimal.Decimal) (*entity.Transaction, error)); ok {
+		return returnFunc(ctx, userID, accountNumber, amount)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, decimal.Decimal) *entity.Transaction); ok {
-		r0 = returnFunc(ctx, accountID, amount)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, decimal.Decimal) *entity.Transaction); ok {
+		r0 = returnFunc(ctx, userID, accountNumber, amount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.Transaction)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, decimal.Decimal) error); ok {
-		r1 = returnFunc(ctx, accountID, amount)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, decimal.Decimal) error); ok {
+		r1 = returnFunc(ctx, userID, accountNumber, amount)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -74,174 +74,14 @@ type MockService_Deposit_Call struct {
 
 // Deposit is a helper method to define mock.On call
 //   - ctx context.Context
-//   - accountID string
+//   - userID string
+//   - accountNumber string
 //   - amount decimal.Decimal
-func (_e *MockService_Expecter) Deposit(ctx interface{}, accountID interface{}, amount interface{}) *MockService_Deposit_Call {
-	return &MockService_Deposit_Call{Call: _e.mock.On("Deposit", ctx, accountID, amount)}
+func (_e *MockService_Expecter) Deposit(ctx interface{}, userID interface{}, accountNumber interface{}, amount interface{}) *MockService_Deposit_Call {
+	return &MockService_Deposit_Call{Call: _e.mock.On("Deposit", ctx, userID, accountNumber, amount)}
 }
 
-func (_c *MockService_Deposit_Call) Run(run func(ctx context.Context, accountID string, amount decimal.Decimal)) *MockService_Deposit_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 decimal.Decimal
-		if args[2] != nil {
-			arg2 = args[2].(decimal.Decimal)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_Deposit_Call) Return(transaction *entity.Transaction, err error) *MockService_Deposit_Call {
-	_c.Call.Return(transaction, err)
-	return _c
-}
-
-func (_c *MockService_Deposit_Call) RunAndReturn(run func(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error)) *MockService_Deposit_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListByAccount provides a mock function for the type MockService
-func (_mock *MockService) ListByAccount(ctx context.Context, accountID string, page int, limit int) ([]*entity.Transaction, int64, error) {
-	ret := _mock.Called(ctx, accountID, page, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListByAccount")
-	}
-
-	var r0 []*entity.Transaction
-	var r1 int64
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*entity.Transaction, int64, error)); ok {
-		return returnFunc(ctx, accountID, page, limit)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, int, int) []*entity.Transaction); ok {
-		r0 = returnFunc(ctx, accountID, page, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*entity.Transaction)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, int, int) int64); ok {
-		r1 = returnFunc(ctx, accountID, page, limit)
-	} else {
-		r1 = ret.Get(1).(int64)
-	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, int, int) error); ok {
-		r2 = returnFunc(ctx, accountID, page, limit)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
-}
-
-// MockService_ListByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByAccount'
-type MockService_ListByAccount_Call struct {
-	*mock.Call
-}
-
-// ListByAccount is a helper method to define mock.On call
-//   - ctx context.Context
-//   - accountID string
-//   - page int
-//   - limit int
-func (_e *MockService_Expecter) ListByAccount(ctx interface{}, accountID interface{}, page interface{}, limit interface{}) *MockService_ListByAccount_Call {
-	return &MockService_ListByAccount_Call{Call: _e.mock.On("ListByAccount", ctx, accountID, page, limit)}
-}
-
-func (_c *MockService_ListByAccount_Call) Run(run func(ctx context.Context, accountID string, page int, limit int)) *MockService_ListByAccount_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
-		}
-		var arg3 int
-		if args[3] != nil {
-			arg3 = args[3].(int)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-		)
-	})
-	return _c
-}
-
-func (_c *MockService_ListByAccount_Call) Return(transactions []*entity.Transaction, n int64, err error) *MockService_ListByAccount_Call {
-	_c.Call.Return(transactions, n, err)
-	return _c
-}
-
-func (_c *MockService_ListByAccount_Call) RunAndReturn(run func(ctx context.Context, accountID string, page int, limit int) ([]*entity.Transaction, int64, error)) *MockService_ListByAccount_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// Transfer provides a mock function for the type MockService
-func (_mock *MockService) Transfer(ctx context.Context, fromAccountID string, toAccountID string, amount decimal.Decimal) (*entity.Transaction, error) {
-	ret := _mock.Called(ctx, fromAccountID, toAccountID, amount)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Transfer")
-	}
-
-	var r0 *entity.Transaction
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, decimal.Decimal) (*entity.Transaction, error)); ok {
-		return returnFunc(ctx, fromAccountID, toAccountID, amount)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, decimal.Decimal) *entity.Transaction); ok {
-		r0 = returnFunc(ctx, fromAccountID, toAccountID, amount)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.Transaction)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, decimal.Decimal) error); ok {
-		r1 = returnFunc(ctx, fromAccountID, toAccountID, amount)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockService_Transfer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Transfer'
-type MockService_Transfer_Call struct {
-	*mock.Call
-}
-
-// Transfer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fromAccountID string
-//   - toAccountID string
-//   - amount decimal.Decimal
-func (_e *MockService_Expecter) Transfer(ctx interface{}, fromAccountID interface{}, toAccountID interface{}, amount interface{}) *MockService_Transfer_Call {
-	return &MockService_Transfer_Call{Call: _e.mock.On("Transfer", ctx, fromAccountID, toAccountID, amount)}
-}
-
-func (_c *MockService_Transfer_Call) Run(run func(ctx context.Context, fromAccountID string, toAccountID string, amount decimal.Decimal)) *MockService_Transfer_Call {
+func (_c *MockService_Deposit_Call) Run(run func(ctx context.Context, userID string, accountNumber string, amount decimal.Decimal)) *MockService_Deposit_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -269,19 +109,197 @@ func (_c *MockService_Transfer_Call) Run(run func(ctx context.Context, fromAccou
 	return _c
 }
 
+func (_c *MockService_Deposit_Call) Return(transaction *entity.Transaction, err error) *MockService_Deposit_Call {
+	_c.Call.Return(transaction, err)
+	return _c
+}
+
+func (_c *MockService_Deposit_Call) RunAndReturn(run func(ctx context.Context, userID string, accountNumber string, amount decimal.Decimal) (*entity.Transaction, error)) *MockService_Deposit_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListByAccount provides a mock function for the type MockService
+func (_mock *MockService) ListByAccount(ctx context.Context, userID string, accountNumber string, page int, limit int) ([]*entity.Transaction, int64, error) {
+	ret := _mock.Called(ctx, userID, accountNumber, page, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListByAccount")
+	}
+
+	var r0 []*entity.Transaction
+	var r1 int64
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, int, int) ([]*entity.Transaction, int64, error)); ok {
+		return returnFunc(ctx, userID, accountNumber, page, limit)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, int, int) []*entity.Transaction); ok {
+		r0 = returnFunc(ctx, userID, accountNumber, page, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*entity.Transaction)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, int, int) int64); ok {
+		r1 = returnFunc(ctx, userID, accountNumber, page, limit)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string, int, int) error); ok {
+		r2 = returnFunc(ctx, userID, accountNumber, page, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockService_ListByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByAccount'
+type MockService_ListByAccount_Call struct {
+	*mock.Call
+}
+
+// ListByAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - accountNumber string
+//   - page int
+//   - limit int
+func (_e *MockService_Expecter) ListByAccount(ctx interface{}, userID interface{}, accountNumber interface{}, page interface{}, limit interface{}) *MockService_ListByAccount_Call {
+	return &MockService_ListByAccount_Call{Call: _e.mock.On("ListByAccount", ctx, userID, accountNumber, page, limit)}
+}
+
+func (_c *MockService_ListByAccount_Call) Run(run func(ctx context.Context, userID string, accountNumber string, page int, limit int)) *MockService_ListByAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 int
+		if args[3] != nil {
+			arg3 = args[3].(int)
+		}
+		var arg4 int
+		if args[4] != nil {
+			arg4 = args[4].(int)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_ListByAccount_Call) Return(transactions []*entity.Transaction, n int64, err error) *MockService_ListByAccount_Call {
+	_c.Call.Return(transactions, n, err)
+	return _c
+}
+
+func (_c *MockService_ListByAccount_Call) RunAndReturn(run func(ctx context.Context, userID string, accountNumber string, page int, limit int) ([]*entity.Transaction, int64, error)) *MockService_ListByAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Transfer provides a mock function for the type MockService
+func (_mock *MockService) Transfer(ctx context.Context, userID string, fromAccountNumber string, toAccountNumber string, amount decimal.Decimal) (*entity.Transaction, error) {
+	ret := _mock.Called(ctx, userID, fromAccountNumber, toAccountNumber, amount)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Transfer")
+	}
+
+	var r0 *entity.Transaction
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, decimal.Decimal) (*entity.Transaction, error)); ok {
+		return returnFunc(ctx, userID, fromAccountNumber, toAccountNumber, amount)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, decimal.Decimal) *entity.Transaction); ok {
+		r0 = returnFunc(ctx, userID, fromAccountNumber, toAccountNumber, amount)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Transaction)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, decimal.Decimal) error); ok {
+		r1 = returnFunc(ctx, userID, fromAccountNumber, toAccountNumber, amount)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_Transfer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Transfer'
+type MockService_Transfer_Call struct {
+	*mock.Call
+}
+
+// Transfer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - fromAccountNumber string
+//   - toAccountNumber string
+//   - amount decimal.Decimal
+func (_e *MockService_Expecter) Transfer(ctx interface{}, userID interface{}, fromAccountNumber interface{}, toAccountNumber interface{}, amount interface{}) *MockService_Transfer_Call {
+	return &MockService_Transfer_Call{Call: _e.mock.On("Transfer", ctx, userID, fromAccountNumber, toAccountNumber, amount)}
+}
+
+func (_c *MockService_Transfer_Call) Run(run func(ctx context.Context, userID string, fromAccountNumber string, toAccountNumber string, amount decimal.Decimal)) *MockService_Transfer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 decimal.Decimal
+		if args[4] != nil {
+			arg4 = args[4].(decimal.Decimal)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
 func (_c *MockService_Transfer_Call) Return(transaction *entity.Transaction, err error) *MockService_Transfer_Call {
 	_c.Call.Return(transaction, err)
 	return _c
 }
 
-func (_c *MockService_Transfer_Call) RunAndReturn(run func(ctx context.Context, fromAccountID string, toAccountID string, amount decimal.Decimal) (*entity.Transaction, error)) *MockService_Transfer_Call {
+func (_c *MockService_Transfer_Call) RunAndReturn(run func(ctx context.Context, userID string, fromAccountNumber string, toAccountNumber string, amount decimal.Decimal) (*entity.Transaction, error)) *MockService_Transfer_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Withdraw provides a mock function for the type MockService
-func (_mock *MockService) Withdraw(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error) {
-	ret := _mock.Called(ctx, accountID, amount)
+func (_mock *MockService) Withdraw(ctx context.Context, userID string, accountNumber string, amount decimal.Decimal) (*entity.Transaction, error) {
+	ret := _mock.Called(ctx, userID, accountNumber, amount)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Withdraw")
@@ -289,18 +307,18 @@ func (_mock *MockService) Withdraw(ctx context.Context, accountID string, amount
 
 	var r0 *entity.Transaction
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, decimal.Decimal) (*entity.Transaction, error)); ok {
-		return returnFunc(ctx, accountID, amount)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, decimal.Decimal) (*entity.Transaction, error)); ok {
+		return returnFunc(ctx, userID, accountNumber, amount)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, decimal.Decimal) *entity.Transaction); ok {
-		r0 = returnFunc(ctx, accountID, amount)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, decimal.Decimal) *entity.Transaction); ok {
+		r0 = returnFunc(ctx, userID, accountNumber, amount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.Transaction)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, decimal.Decimal) error); ok {
-		r1 = returnFunc(ctx, accountID, amount)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, decimal.Decimal) error); ok {
+		r1 = returnFunc(ctx, userID, accountNumber, amount)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -314,13 +332,14 @@ type MockService_Withdraw_Call struct {
 
 // Withdraw is a helper method to define mock.On call
 //   - ctx context.Context
-//   - accountID string
+//   - userID string
+//   - accountNumber string
 //   - amount decimal.Decimal
-func (_e *MockService_Expecter) Withdraw(ctx interface{}, accountID interface{}, amount interface{}) *MockService_Withdraw_Call {
-	return &MockService_Withdraw_Call{Call: _e.mock.On("Withdraw", ctx, accountID, amount)}
+func (_e *MockService_Expecter) Withdraw(ctx interface{}, userID interface{}, accountNumber interface{}, amount interface{}) *MockService_Withdraw_Call {
+	return &MockService_Withdraw_Call{Call: _e.mock.On("Withdraw", ctx, userID, accountNumber, amount)}
 }
 
-func (_c *MockService_Withdraw_Call) Run(run func(ctx context.Context, accountID string, amount decimal.Decimal)) *MockService_Withdraw_Call {
+func (_c *MockService_Withdraw_Call) Run(run func(ctx context.Context, userID string, accountNumber string, amount decimal.Decimal)) *MockService_Withdraw_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -330,14 +349,19 @@ func (_c *MockService_Withdraw_Call) Run(run func(ctx context.Context, accountID
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 decimal.Decimal
+		var arg2 string
 		if args[2] != nil {
-			arg2 = args[2].(decimal.Decimal)
+			arg2 = args[2].(string)
+		}
+		var arg3 decimal.Decimal
+		if args[3] != nil {
+			arg3 = args[3].(decimal.Decimal)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -348,7 +372,7 @@ func (_c *MockService_Withdraw_Call) Return(transaction *entity.Transaction, err
 	return _c
 }
 
-func (_c *MockService_Withdraw_Call) RunAndReturn(run func(ctx context.Context, accountID string, amount decimal.Decimal) (*entity.Transaction, error)) *MockService_Withdraw_Call {
+func (_c *MockService_Withdraw_Call) RunAndReturn(run func(ctx context.Context, userID string, accountNumber string, amount decimal.Decimal) (*entity.Transaction, error)) *MockService_Withdraw_Call {
 	_c.Call.Return(run)
 	return _c
 }

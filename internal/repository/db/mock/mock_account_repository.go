@@ -39,20 +39,31 @@ func (_m *MockAccountRepository) EXPECT() *MockAccountRepository_Expecter {
 }
 
 // Create provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) Create(ctx context.Context, account *entity.Account) error {
+func (_mock *MockAccountRepository) Create(ctx context.Context, account *entity.Account) (*entity.Account, error) {
 	ret := _mock.Called(ctx, account)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Account) error); ok {
+	var r0 *entity.Account
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Account) (*entity.Account, error)); ok {
+		return returnFunc(ctx, account)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Account) *entity.Account); ok {
 		r0 = returnFunc(ctx, account)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Account)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, *entity.Account) error); ok {
+		r1 = returnFunc(ctx, account)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockAccountRepository_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
@@ -85,114 +96,57 @@ func (_c *MockAccountRepository_Create_Call) Run(run func(ctx context.Context, a
 	return _c
 }
 
-func (_c *MockAccountRepository_Create_Call) Return(err error) *MockAccountRepository_Create_Call {
-	_c.Call.Return(err)
+func (_c *MockAccountRepository_Create_Call) Return(account1 *entity.Account, err error) *MockAccountRepository_Create_Call {
+	_c.Call.Return(account1, err)
 	return _c
 }
 
-func (_c *MockAccountRepository_Create_Call) RunAndReturn(run func(ctx context.Context, account *entity.Account) error) *MockAccountRepository_Create_Call {
+func (_c *MockAccountRepository_Create_Call) RunAndReturn(run func(ctx context.Context, account *entity.Account) (*entity.Account, error)) *MockAccountRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// Delete provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) Delete(ctx context.Context, id string) error {
-	ret := _mock.Called(ctx, id)
+// FindByAccountNumber provides a mock function for the type MockAccountRepository
+func (_mock *MockAccountRepository) FindByAccountNumber(ctx context.Context, accountNumber string) (*entity.Account, error) {
+	ret := _mock.Called(ctx, accountNumber)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Delete")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockAccountRepository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
-type MockAccountRepository_Delete_Call struct {
-	*mock.Call
-}
-
-// Delete is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *MockAccountRepository_Expecter) Delete(ctx interface{}, id interface{}) *MockAccountRepository_Delete_Call {
-	return &MockAccountRepository_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
-}
-
-func (_c *MockAccountRepository_Delete_Call) Run(run func(ctx context.Context, id string)) *MockAccountRepository_Delete_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockAccountRepository_Delete_Call) Return(err error) *MockAccountRepository_Delete_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockAccountRepository_Delete_Call) RunAndReturn(run func(ctx context.Context, id string) error) *MockAccountRepository_Delete_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// FindByID provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) FindByID(ctx context.Context, id string) (*entity.Account, error) {
-	ret := _mock.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FindByID")
+		panic("no return value specified for FindByAccountNumber")
 	}
 
 	var r0 *entity.Account
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.Account, error)); ok {
-		return returnFunc(ctx, id)
+		return returnFunc(ctx, accountNumber)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.Account); ok {
-		r0 = returnFunc(ctx, id)
+		r0 = returnFunc(ctx, accountNumber)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.Account)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, id)
+		r1 = returnFunc(ctx, accountNumber)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockAccountRepository_FindByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByID'
-type MockAccountRepository_FindByID_Call struct {
+// MockAccountRepository_FindByAccountNumber_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByAccountNumber'
+type MockAccountRepository_FindByAccountNumber_Call struct {
 	*mock.Call
 }
 
-// FindByID is a helper method to define mock.On call
+// FindByAccountNumber is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id string
-func (_e *MockAccountRepository_Expecter) FindByID(ctx interface{}, id interface{}) *MockAccountRepository_FindByID_Call {
-	return &MockAccountRepository_FindByID_Call{Call: _e.mock.On("FindByID", ctx, id)}
+//   - accountNumber string
+func (_e *MockAccountRepository_Expecter) FindByAccountNumber(ctx interface{}, accountNumber interface{}) *MockAccountRepository_FindByAccountNumber_Call {
+	return &MockAccountRepository_FindByAccountNumber_Call{Call: _e.mock.On("FindByAccountNumber", ctx, accountNumber)}
 }
 
-func (_c *MockAccountRepository_FindByID_Call) Run(run func(ctx context.Context, id string)) *MockAccountRepository_FindByID_Call {
+func (_c *MockAccountRepository_FindByAccountNumber_Call) Run(run func(ctx context.Context, accountNumber string)) *MockAccountRepository_FindByAccountNumber_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -210,57 +164,57 @@ func (_c *MockAccountRepository_FindByID_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *MockAccountRepository_FindByID_Call) Return(account *entity.Account, err error) *MockAccountRepository_FindByID_Call {
+func (_c *MockAccountRepository_FindByAccountNumber_Call) Return(account *entity.Account, err error) *MockAccountRepository_FindByAccountNumber_Call {
 	_c.Call.Return(account, err)
 	return _c
 }
 
-func (_c *MockAccountRepository_FindByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*entity.Account, error)) *MockAccountRepository_FindByID_Call {
+func (_c *MockAccountRepository_FindByAccountNumber_Call) RunAndReturn(run func(ctx context.Context, accountNumber string) (*entity.Account, error)) *MockAccountRepository_FindByAccountNumber_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// FindByIDForUpdate provides a mock function for the type MockAccountRepository
-func (_mock *MockAccountRepository) FindByIDForUpdate(ctx context.Context, id string) (*entity.Account, error) {
-	ret := _mock.Called(ctx, id)
+// FindByAccountNumberForUpdate provides a mock function for the type MockAccountRepository
+func (_mock *MockAccountRepository) FindByAccountNumberForUpdate(ctx context.Context, accountNumber string) (*entity.Account, error) {
+	ret := _mock.Called(ctx, accountNumber)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindByIDForUpdate")
+		panic("no return value specified for FindByAccountNumberForUpdate")
 	}
 
 	var r0 *entity.Account
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.Account, error)); ok {
-		return returnFunc(ctx, id)
+		return returnFunc(ctx, accountNumber)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.Account); ok {
-		r0 = returnFunc(ctx, id)
+		r0 = returnFunc(ctx, accountNumber)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.Account)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, id)
+		r1 = returnFunc(ctx, accountNumber)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockAccountRepository_FindByIDForUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByIDForUpdate'
-type MockAccountRepository_FindByIDForUpdate_Call struct {
+// MockAccountRepository_FindByAccountNumberForUpdate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByAccountNumberForUpdate'
+type MockAccountRepository_FindByAccountNumberForUpdate_Call struct {
 	*mock.Call
 }
 
-// FindByIDForUpdate is a helper method to define mock.On call
+// FindByAccountNumberForUpdate is a helper method to define mock.On call
 //   - ctx context.Context
-//   - id string
-func (_e *MockAccountRepository_Expecter) FindByIDForUpdate(ctx interface{}, id interface{}) *MockAccountRepository_FindByIDForUpdate_Call {
-	return &MockAccountRepository_FindByIDForUpdate_Call{Call: _e.mock.On("FindByIDForUpdate", ctx, id)}
+//   - accountNumber string
+func (_e *MockAccountRepository_Expecter) FindByAccountNumberForUpdate(ctx interface{}, accountNumber interface{}) *MockAccountRepository_FindByAccountNumberForUpdate_Call {
+	return &MockAccountRepository_FindByAccountNumberForUpdate_Call{Call: _e.mock.On("FindByAccountNumberForUpdate", ctx, accountNumber)}
 }
 
-func (_c *MockAccountRepository_FindByIDForUpdate_Call) Run(run func(ctx context.Context, id string)) *MockAccountRepository_FindByIDForUpdate_Call {
+func (_c *MockAccountRepository_FindByAccountNumberForUpdate_Call) Run(run func(ctx context.Context, accountNumber string)) *MockAccountRepository_FindByAccountNumberForUpdate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -278,12 +232,12 @@ func (_c *MockAccountRepository_FindByIDForUpdate_Call) Run(run func(ctx context
 	return _c
 }
 
-func (_c *MockAccountRepository_FindByIDForUpdate_Call) Return(account *entity.Account, err error) *MockAccountRepository_FindByIDForUpdate_Call {
+func (_c *MockAccountRepository_FindByAccountNumberForUpdate_Call) Return(account *entity.Account, err error) *MockAccountRepository_FindByAccountNumberForUpdate_Call {
 	_c.Call.Return(account, err)
 	return _c
 }
 
-func (_c *MockAccountRepository_FindByIDForUpdate_Call) RunAndReturn(run func(ctx context.Context, id string) (*entity.Account, error)) *MockAccountRepository_FindByIDForUpdate_Call {
+func (_c *MockAccountRepository_FindByAccountNumberForUpdate_Call) RunAndReturn(run func(ctx context.Context, accountNumber string) (*entity.Account, error)) *MockAccountRepository_FindByAccountNumberForUpdate_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -8,6 +8,7 @@ import (
 	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
+	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type transactionRepository struct {
@@ -19,19 +20,26 @@ func ProvideTransactionRepository(db *adapterdb.DB) TransactionRepository {
 	return &transactionRepository{db: db}
 }
 
-func (r *transactionRepository) Create(ctx context.Context, transaction *entity.Transaction) error {
-	if transaction.ID == uuid.Nil {
-		transaction.ID = uuid.New()
+func (r *transactionRepository) Create(ctx context.Context, transaction *entity.Transaction) (*entity.Transaction, error) {
+	if err := requireTx(ctx); err != nil {
+		return nil, err
 	}
-	m := model.FromEntityTransaction(transaction)
-	return dbFromCtx(ctx, r.db).Create(m).Error
+	tx := model.FromEntityTransaction(transaction)
+	if tx.ID == uuid.Nil {
+		tx.ID = uuid.New()
+	}
+	if err := dbFromCtx(ctx, r.db).Create(tx).Error; err != nil {
+		return nil, pkgerrs.ErrInternal.WithError(err)
+	}
+	return tx.ToEntity(), nil
 }
 
 func (r *transactionRepository) FindByAccountID(ctx context.Context, accountID string, page, limit int) ([]*entity.Transaction, int64, error) {
-	var transactions model.Transactions
+	var tx model.Transactions
 	var total int64
 
-	query := r.db.WithContext(ctx).Model(&model.Transaction{}).
+	query := r.db.WithContext(ctx).
+		Model(&model.Transaction{}).
 		Where("from_account_id = ? OR to_account_id = ?", accountID, accountID)
 
 	if err := query.Count(&total).Error; err != nil {
@@ -39,9 +47,16 @@ func (r *transactionRepository) FindByAccountID(ctx context.Context, accountID s
 	}
 
 	offset := (page - 1) * limit
-	if err := query.Order("created_at DESC").Offset(offset).Limit(limit).Find(&transactions).Error; err != nil {
+	err := query.
+		Preload("FromAccount").
+		Preload("ToAccount").
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&tx).Error
+	if err != nil {
 		return nil, 0, err
 	}
 
-	return transactions.ToEntities(), total, nil
+	return tx.ToEntities(), total, nil
 }

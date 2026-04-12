@@ -114,8 +114,8 @@ func (_c *MockService_CreateAccount_Call) RunAndReturn(run func(ctx context.Cont
 }
 
 // GetBalance provides a mock function for the type MockService
-func (_mock *MockService) GetBalance(ctx context.Context, accountID string) (decimal.Decimal, error) {
-	ret := _mock.Called(ctx, accountID)
+func (_mock *MockService) GetBalance(ctx context.Context, userID string, accountNumber string) (decimal.Decimal, error) {
+	ret := _mock.Called(ctx, userID, accountNumber)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBalance")
@@ -123,16 +123,16 @@ func (_mock *MockService) GetBalance(ctx context.Context, accountID string) (dec
 
 	var r0 decimal.Decimal
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (decimal.Decimal, error)); ok {
-		return returnFunc(ctx, accountID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (decimal.Decimal, error)); ok {
+		return returnFunc(ctx, userID, accountNumber)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) decimal.Decimal); ok {
-		r0 = returnFunc(ctx, accountID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) decimal.Decimal); ok {
+		r0 = returnFunc(ctx, userID, accountNumber)
 	} else {
 		r0 = ret.Get(0).(decimal.Decimal)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, accountID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, userID, accountNumber)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -146,12 +146,86 @@ type MockService_GetBalance_Call struct {
 
 // GetBalance is a helper method to define mock.On call
 //   - ctx context.Context
-//   - accountID string
-func (_e *MockService_Expecter) GetBalance(ctx interface{}, accountID interface{}) *MockService_GetBalance_Call {
-	return &MockService_GetBalance_Call{Call: _e.mock.On("GetBalance", ctx, accountID)}
+//   - userID string
+//   - accountNumber string
+func (_e *MockService_Expecter) GetBalance(ctx interface{}, userID interface{}, accountNumber interface{}) *MockService_GetBalance_Call {
+	return &MockService_GetBalance_Call{Call: _e.mock.On("GetBalance", ctx, userID, accountNumber)}
 }
 
-func (_c *MockService_GetBalance_Call) Run(run func(ctx context.Context, accountID string)) *MockService_GetBalance_Call {
+func (_c *MockService_GetBalance_Call) Run(run func(ctx context.Context, userID string, accountNumber string)) *MockService_GetBalance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_GetBalance_Call) Return(decimal1 decimal.Decimal, err error) *MockService_GetBalance_Call {
+	_c.Call.Return(decimal1, err)
+	return _c
+}
+
+func (_c *MockService_GetBalance_Call) RunAndReturn(run func(ctx context.Context, userID string, accountNumber string) (decimal.Decimal, error)) *MockService_GetBalance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListAccounts provides a mock function for the type MockService
+func (_mock *MockService) ListAccounts(ctx context.Context, userID string) ([]*entity.Account, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAccounts")
+	}
+
+	var r0 []*entity.Account
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]*entity.Account, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []*entity.Account); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*entity.Account)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockService_ListAccounts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAccounts'
+type MockService_ListAccounts_Call struct {
+	*mock.Call
+}
+
+// ListAccounts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *MockService_Expecter) ListAccounts(ctx interface{}, userID interface{}) *MockService_ListAccounts_Call {
+	return &MockService_ListAccounts_Call{Call: _e.mock.On("ListAccounts", ctx, userID)}
+}
+
+func (_c *MockService_ListAccounts_Call) Run(run func(ctx context.Context, userID string)) *MockService_ListAccounts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -169,12 +243,12 @@ func (_c *MockService_GetBalance_Call) Run(run func(ctx context.Context, account
 	return _c
 }
 
-func (_c *MockService_GetBalance_Call) Return(decimal1 decimal.Decimal, err error) *MockService_GetBalance_Call {
-	_c.Call.Return(decimal1, err)
+func (_c *MockService_ListAccounts_Call) Return(accounts []*entity.Account, err error) *MockService_ListAccounts_Call {
+	_c.Call.Return(accounts, err)
 	return _c
 }
 
-func (_c *MockService_GetBalance_Call) RunAndReturn(run func(ctx context.Context, accountID string) (decimal.Decimal, error)) *MockService_GetBalance_Call {
+func (_c *MockService_ListAccounts_Call) RunAndReturn(run func(ctx context.Context, userID string) ([]*entity.Account, error)) *MockService_ListAccounts_Call {
 	_c.Call.Return(run)
 	return _c
 }

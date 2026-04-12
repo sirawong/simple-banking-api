@@ -2,7 +2,6 @@ package request
 
 // CreateAccountRequest godoc
 type CreateAccountRequest struct {
-	UserID   string `json:"userId" binding:"required,uuid"`
 	Currency string `json:"currency" binding:"required"`
 }
 

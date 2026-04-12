@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
+	"github.com/google/uuid"
 
 	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
@@ -23,65 +25,76 @@ func ProvideAccountRepository(db *adapterdb.DB) AccountRepository {
 	return &accountRepository{db: db}
 }
 
-func (r *accountRepository) FindByID(ctx context.Context, id string) (*entity.Account, error) {
-	var account model.Account
-	if err := dbFromCtx(ctx, r.db).Where("deleted_at IS NULL").First(&account, "id = ?", id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.ErrAccountNotFound
-		}
-		return nil, pkgerrs.ErrInternal.Wrap(err, "Internal error")
-	}
-	return account.ToDomain(), nil
-}
-
 func (r *accountRepository) FindByUserID(ctx context.Context, userID string) ([]*entity.Account, error) {
 	var accounts model.Accounts
-	if err := dbFromCtx(ctx, r.db).Where("user_id = ? AND deleted_at IS NULL", userID).Find(&accounts).Error; err != nil {
-		return nil, pkgerrs.ErrInternal.Wrap(err, "Internal error")
+	err := dbFromCtx(ctx, r.db).
+		Scopes(notDeleted).
+		Where("user_id = ?", userID).
+		Find(&accounts).Error
+	if err != nil {
+		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 	return accounts.ToEntities(), nil
 }
 
-func (r *accountRepository) FindByIDForUpdate(ctx context.Context, id string) (*entity.Account, error) {
-	if _, ok := ctx.Value(txContextKey{}).(*gorm.DB); !ok {
-		return nil, pkgerrs.ErrInternal.New("FindByIDForUpdate must be called within a transaction")
-	}
+func (r *accountRepository) FindByAccountNumber(ctx context.Context, accountNumber string) (*entity.Account, error) {
 	var account model.Account
-	if err := dbFromCtx(ctx, r.db).Set("gorm:query_option", "FOR UPDATE").
-		Where("deleted_at IS NULL").First(&account, "id = ?", id).Error; err != nil {
+	err := dbFromCtx(ctx, r.db).
+		Scopes(notDeleted).
+		Where("account_number = ?", accountNumber).
+		First(&account).Error
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrAccountNotFound
 		}
-		return nil, pkgerrs.ErrInternal.Wrap(err, "Internal error")
+		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 	return account.ToDomain(), nil
 }
 
-func (r *accountRepository) Create(ctx context.Context, account *entity.Account) error {
-	if account.ID == uuid.Nil {
-		account.ID = uuid.New()
+func (r *accountRepository) FindByAccountNumberForUpdate(ctx context.Context, accountNumber string) (*entity.Account, error) {
+	if err := requireTx(ctx); err != nil {
+		return nil, err
 	}
-	m := model.FromEntityAccount(account)
-	if err := dbFromCtx(ctx, r.db).Create(m).Error; err != nil {
-		if isDuplicateError(err) {
-			return errs.ErrDuplicateAccount
+	var account model.Account
+	err := dbFromCtx(ctx, r.db).
+		Scopes(notDeleted).
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("account_number = ?", accountNumber).
+		First(&account).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errs.ErrAccountNotFound
 		}
-		return pkgerrs.ErrInternal.Wrap(err, "Internal error")
+		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
-	return nil
+	return account.ToDomain(), nil
+}
+
+func (r *accountRepository) Create(ctx context.Context, account *entity.Account) (*entity.Account, error) {
+	a := model.FromEntityAccount(account)
+	if a.ID == uuid.Nil {
+		a.ID = uuid.New()
+	}
+	if err := dbFromCtx(ctx, r.db).Create(a).Error; err != nil {
+		if isDuplicateError(err) {
+			return nil, errs.ErrDuplicateAccount
+		}
+		return nil, pkgerrs.ErrInternal.WithError(err)
+	}
+	return a.ToDomain(), nil
 }
 
 func (r *accountRepository) Update(ctx context.Context, account *entity.Account) error {
-	m := model.FromEntityAccount(account)
-	if m == nil {
+	if err := requireTx(ctx); err != nil {
+		return err
+	}
+	a := model.FromEntityAccount(account)
+	if a == nil {
 		return pkgerrs.ErrBadRequest.New("invalid account")
 	}
-	return dbFromCtx(ctx, r.db).Save(m).Error
-}
-
-func (r *accountRepository) Delete(ctx context.Context, id string) error {
-	return dbFromCtx(ctx, r.db).
-		Model(&model.Account{}).
-		Where("id = ?", id).
-		Update("deleted_at", gorm.Expr("NOW()")).Error
+	if err := dbFromCtx(ctx, r.db).Save(a).Error; err != nil {
+		return pkgerrs.ErrInternal.WithError(err)
+	}
+	return nil
 }

@@ -1,8 +1,6 @@
 package response
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
@@ -10,12 +8,10 @@ import (
 )
 
 type AccountResponse struct {
-	ID            uuid.UUID       `json:"id"`
 	UserID        uuid.UUID       `json:"userId"`
 	AccountNumber string          `json:"accountNumber"`
 	Balance       decimal.Decimal `json:"balance"`
 	Currency      string          `json:"currency"`
-	CreatedAt     time.Time       `json:"createdAt"`
 }
 
 func FromEntityAccount(a *entity.Account) *AccountResponse {
@@ -23,16 +19,22 @@ func FromEntityAccount(a *entity.Account) *AccountResponse {
 		return nil
 	}
 	return &AccountResponse{
-		ID:            a.ID,
 		UserID:        a.UserID,
 		AccountNumber: a.AccountNumber,
 		Balance:       a.Balance,
 		Currency:      a.Currency,
-		CreatedAt:     a.CreatedAt,
 	}
 }
 
+func FromEntityAccounts(accounts []*entity.Account) []*AccountResponse {
+	res := make([]*AccountResponse, 0, len(accounts))
+	for _, a := range accounts {
+		res = append(res, FromEntityAccount(a))
+	}
+	return res
+}
+
 type BalanceResponse struct {
-	AccountID string          `json:"accountId"`
-	Balance   decimal.Decimal `json:"balance"`
+	AccountNumber string          `json:"accountNumber"`
+	Balance       decimal.Decimal `json:"balance"`
 }

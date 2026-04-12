@@ -1,8 +1,10 @@
 package config
 
 import (
+	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -41,6 +43,12 @@ type JWTConfig struct {
 }
 
 func ProvideConfig() (*Config, error) {
+	envFile := os.Getenv("ENV_FILE")
+	if envFile == "" {
+		envFile = ".env"
+	}
+	_ = godotenv.Load(envFile)
+
 	var cfg Config
 	if err := envconfig.Process("", &cfg.App); err != nil {
 		return nil, err

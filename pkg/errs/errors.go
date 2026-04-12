@@ -80,4 +80,5 @@ var (
 	ErrBadRequest   = Sentinel("Invalid request", http.StatusBadRequest)
 	ErrUnauthorized = Sentinel("Unauthorized", http.StatusUnauthorized)
 	ErrInvalidToken = Sentinel("Invalid or expired token", http.StatusUnauthorized)
+	ErrForbidden    = Sentinel("Forbidden", http.StatusForbidden)
 )

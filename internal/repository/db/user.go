@@ -24,7 +24,11 @@ func ProvideUserRepository(db *adapterdb.DB) UserRepository {
 
 func (r *userRepository) FindByID(ctx context.Context, id string) (*entity.User, error) {
 	var user model.User
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").First(&user, "id = ?", id).Error; err != nil {
+	err := r.db.WithContext(ctx).
+		Scopes(notDeleted).
+		Where("id = ?", id).
+		First(&user).Error
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrUserNotFound
 		}
@@ -35,7 +39,11 @@ func (r *userRepository) FindByID(ctx context.Context, id string) (*entity.User,
 
 func (r *userRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user model.User
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").First(&user, "email = ?", email).Error; err != nil {
+	err := r.db.WithContext(ctx).
+		Scopes(notDeleted).
+		Where("email = ?", email).
+		First(&user).Error
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrUserNotFound
 		}
@@ -44,16 +52,16 @@ func (r *userRepository) FindByEmail(ctx context.Context, email string) (*entity
 	return user.ToEntity(), nil
 }
 
-func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
-	if user.ID == uuid.Nil {
-		user.ID = uuid.New()
+func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
+	u := model.FromEntityUser(user)
+	if u.ID == uuid.Nil {
+		u.ID = uuid.New()
 	}
-	m := model.FromEntityUser(user)
-	if err := r.db.WithContext(ctx).Create(m).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(u).Error; err != nil {
 		if isDuplicateError(err) {
-			return errs.ErrDuplicateUser
+			return nil, errs.ErrDuplicateUser
 		}
-		return err
+		return nil, err
 	}
-	return nil
+	return u.ToEntity(), nil
 }
