@@ -6,6 +6,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// txContextKey is an unexported key for storing a gorm transaction in context.
+type txContextKey struct{}
+
+// dbFromCtx returns the transaction stored in ctx if one exists, otherwise the base db.
+// Both are scoped with the given context.
+func dbFromCtx(ctx context.Context, base *gorm.DB) *gorm.DB {
+	if tx, ok := ctx.Value(txContextKey{}).(*gorm.DB); ok && tx != nil {
+		return tx.WithContext(ctx)
+	}
+	return base.WithContext(ctx)
+}
+
 type gormTxManager struct {
 	db *gorm.DB
 }
@@ -15,8 +27,8 @@ func ProvideTxManager(db *gorm.DB) TxManager {
 	return &gormTxManager{db: db}
 }
 
-func (m *gormTxManager) RunInTx(ctx context.Context, fn func(tx Tx) error) error {
-	return m.db.WithContext(ctx).Transaction(func(gormTx *gorm.DB) error {
-		return fn(gormTx)
+func (m *gormTxManager) RunInTx(ctx context.Context, fn func(ctx context.Context) error) error {
+	return dbFromCtx(ctx, m.db).Transaction(func(gormTx *gorm.DB) error {
+		return fn(context.WithValue(ctx, txContextKey{}, gormTx))
 	})
 }

@@ -19,16 +19,16 @@ func ProvideTransactionRepository(db *gorm.DB) TransactionRepository {
 	return &transactionRepository{db: db}
 }
 
-func (r *transactionRepository) Create(ctx context.Context, tx Tx, transaction *entity.Transaction) error {
-	gormTx := tx.(*gorm.DB)
+func (r *transactionRepository) Create(ctx context.Context, transaction *entity.Transaction) error {
 	if transaction.ID == uuid.Nil {
 		transaction.ID = uuid.New()
 	}
-	return gormTx.WithContext(ctx).Create(transaction).Error
+	m := model.FromEntityTransaction(transaction)
+	return dbFromCtx(ctx, r.db).Create(m).Error
 }
 
 func (r *transactionRepository) FindByAccountID(ctx context.Context, accountID string, page, limit int) ([]*entity.Transaction, int64, error) {
-	var transactions *model.Transactions
+	var transactions model.Transactions
 	var total int64
 
 	query := r.db.WithContext(ctx).Model(&model.Transaction{}).

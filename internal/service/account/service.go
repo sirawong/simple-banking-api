@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
+	"github.com/sirawong/simple-banking-api/internal/domain/constrant"
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	cacherepo "github.com/sirawong/simple-banking-api/internal/repository/cache"
@@ -48,7 +49,7 @@ func (s *service) CreateAccount(ctx context.Context, userID, currency string) (*
 }
 
 func (s *service) GetBalance(ctx context.Context, accountID string) (decimal.Decimal, error) {
-	cacheKey := cacheBalanceKey(accountID)
+	cacheKey := constrant.CacheKeyPrefixAccountBalance + accountID
 	if cached, err := s.cache.Get(ctx, cacheKey); err == nil {
 		if d, err := decimal.NewFromString(cached); err == nil {
 			return d, nil
@@ -67,8 +68,4 @@ func (s *service) GetBalance(ctx context.Context, accountID string) (decimal.Dec
 func generateAccountNumber() string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	return fmt.Sprintf("%010d", r.Int63n(9000000000)+1000000000)
-}
-
-func cacheBalanceKey(accountID string) string {
-	return fmt.Sprintf("account:balance:%s", accountID)
 }

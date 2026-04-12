@@ -7,7 +7,6 @@ package mock_db
 import (
 	"context"
 
-	"github.com/sirawong/simple-banking-api/internal/repository/db"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -39,7 +38,7 @@ func (_m *MockTxManager) EXPECT() *MockTxManager_Expecter {
 }
 
 // RunInTx provides a mock function for the type MockTxManager
-func (_mock *MockTxManager) RunInTx(ctx context.Context, fn func(tx db.Tx) error) error {
+func (_mock *MockTxManager) RunInTx(ctx context.Context, fn func(ctx context.Context) error) error {
 	ret := _mock.Called(ctx, fn)
 
 	if len(ret) == 0 {
@@ -47,7 +46,7 @@ func (_mock *MockTxManager) RunInTx(ctx context.Context, fn func(tx db.Tx) error
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, func(tx db.Tx) error) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, func(ctx context.Context) error) error); ok {
 		r0 = returnFunc(ctx, fn)
 	} else {
 		r0 = ret.Error(0)
@@ -62,20 +61,20 @@ type MockTxManager_RunInTx_Call struct {
 
 // RunInTx is a helper method to define mock.On call
 //   - ctx context.Context
-//   - fn func(tx db.Tx) error
+//   - fn func(ctx context.Context) error
 func (_e *MockTxManager_Expecter) RunInTx(ctx interface{}, fn interface{}) *MockTxManager_RunInTx_Call {
 	return &MockTxManager_RunInTx_Call{Call: _e.mock.On("RunInTx", ctx, fn)}
 }
 
-func (_c *MockTxManager_RunInTx_Call) Run(run func(ctx context.Context, fn func(tx db.Tx) error)) *MockTxManager_RunInTx_Call {
+func (_c *MockTxManager_RunInTx_Call) Run(run func(ctx context.Context, fn func(ctx context.Context) error)) *MockTxManager_RunInTx_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 func(tx db.Tx) error
+		var arg1 func(ctx context.Context) error
 		if args[1] != nil {
-			arg1 = args[1].(func(tx db.Tx) error)
+			arg1 = args[1].(func(ctx context.Context) error)
 		}
 		run(
 			arg0,
@@ -90,7 +89,7 @@ func (_c *MockTxManager_RunInTx_Call) Return(err error) *MockTxManager_RunInTx_C
 	return _c
 }
 
-func (_c *MockTxManager_RunInTx_Call) RunAndReturn(run func(ctx context.Context, fn func(tx db.Tx) error) error) *MockTxManager_RunInTx_Call {
+func (_c *MockTxManager_RunInTx_Call) RunAndReturn(run func(ctx context.Context, fn func(ctx context.Context) error) error) *MockTxManager_RunInTx_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
-	"github.com/sirawong/simple-banking-api/internal/repository/db"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -40,16 +39,16 @@ func (_m *MockTransactionRepository) EXPECT() *MockTransactionRepository_Expecte
 }
 
 // Create provides a mock function for the type MockTransactionRepository
-func (_mock *MockTransactionRepository) Create(ctx context.Context, tx db.Tx, transaction *entity.Transaction) error {
-	ret := _mock.Called(ctx, tx, transaction)
+func (_mock *MockTransactionRepository) Create(ctx context.Context, transaction *entity.Transaction) error {
+	ret := _mock.Called(ctx, transaction)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, db.Tx, *entity.Transaction) error); ok {
-		r0 = returnFunc(ctx, tx, transaction)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *entity.Transaction) error); ok {
+		r0 = returnFunc(ctx, transaction)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -63,30 +62,24 @@ type MockTransactionRepository_Create_Call struct {
 
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tx db.Tx
 //   - transaction *entity.Transaction
-func (_e *MockTransactionRepository_Expecter) Create(ctx interface{}, tx interface{}, transaction interface{}) *MockTransactionRepository_Create_Call {
-	return &MockTransactionRepository_Create_Call{Call: _e.mock.On("Create", ctx, tx, transaction)}
+func (_e *MockTransactionRepository_Expecter) Create(ctx interface{}, transaction interface{}) *MockTransactionRepository_Create_Call {
+	return &MockTransactionRepository_Create_Call{Call: _e.mock.On("Create", ctx, transaction)}
 }
 
-func (_c *MockTransactionRepository_Create_Call) Run(run func(ctx context.Context, tx db.Tx, transaction *entity.Transaction)) *MockTransactionRepository_Create_Call {
+func (_c *MockTransactionRepository_Create_Call) Run(run func(ctx context.Context, transaction *entity.Transaction)) *MockTransactionRepository_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 db.Tx
+		var arg1 *entity.Transaction
 		if args[1] != nil {
-			arg1 = args[1].(db.Tx)
-		}
-		var arg2 *entity.Transaction
-		if args[2] != nil {
-			arg2 = args[2].(*entity.Transaction)
+			arg1 = args[1].(*entity.Transaction)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -97,7 +90,7 @@ func (_c *MockTransactionRepository_Create_Call) Return(err error) *MockTransact
 	return _c
 }
 
-func (_c *MockTransactionRepository_Create_Call) RunAndReturn(run func(ctx context.Context, tx db.Tx, transaction *entity.Transaction) error) *MockTransactionRepository_Create_Call {
+func (_c *MockTransactionRepository_Create_Call) RunAndReturn(run func(ctx context.Context, transaction *entity.Transaction) error) *MockTransactionRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
