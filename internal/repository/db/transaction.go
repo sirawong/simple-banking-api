@@ -4,18 +4,18 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 
+	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
 )
 
 type transactionRepository struct {
-	db *gorm.DB
+	db *adapterdb.DB
 }
 
 // @wire:set(name=RepositorySet)
-func ProvideTransactionRepository(db *gorm.DB) TransactionRepository {
+func ProvideTransactionRepository(db *adapterdb.DB) TransactionRepository {
 	return &transactionRepository{db: db}
 }
 

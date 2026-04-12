@@ -29,6 +29,14 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
 }
 
+// TokenRepository defines persistence operations for RefreshToken entities.
+type TokenRepository interface {
+	Create(ctx context.Context, token *entity.RefreshToken) error
+	FindByToken(ctx context.Context, token string) (*entity.RefreshToken, error)
+	DeleteByToken(ctx context.Context, token string) error
+	DeleteByUserID(ctx context.Context, userID string) error
+}
+
 // TransactionRepository defines persistence operations for Transaction entities.
 type TransactionRepository interface {
 	Create(ctx context.Context, transaction *entity.Transaction) error

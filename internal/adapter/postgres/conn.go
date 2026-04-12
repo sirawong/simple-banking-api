@@ -11,8 +11,12 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/config"
 )
 
+type DB struct {
+	*gorm.DB
+}
+
 // @wire:set(name=AdapterSet)
-func ProvideDB(cfg *config.Config) (*gorm.DB, func(), error) {
+func ProvideDB(cfg *config.Config) (*DB, func(), error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Database.Host,
@@ -40,15 +44,15 @@ func ProvideDB(cfg *config.Config) (*gorm.DB, func(), error) {
 	}
 
 	cleanup := func() {
-		sqlDB, err := db.DB()
+		sqlDB, err = db.DB()
 		if err != nil {
 			log.Printf("failed to get sql.DB for cleanup: %v", err)
 			return
 		}
-		if err := sqlDB.Close(); err != nil {
+		if err = sqlDB.Close(); err != nil {
 			log.Printf("failed to close database connection: %v", err)
 		}
 	}
 
-	return db, cleanup, nil
+	return &DB{db}, cleanup, nil
 }

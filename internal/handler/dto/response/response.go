@@ -13,7 +13,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 
-	"github.com/sirawong/simple-banking-api/internal/errs"
+	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type ResponseType int
@@ -41,16 +41,16 @@ func handleWithType(c *gin.Context, data any, err error, responseType ResponseTy
 			for _, e := range validationErrs {
 				errorDetails[e.Field()] = e.Translate(trans)
 			}
-			appErr := errs.ErrBadRequest.WithDetails(errorDetails)
+			appErr := pkgerrs.ErrBadRequest.WithDetails(errorDetails)
 			c.JSON(appErr.HttpStatusCode, appErr)
 			return
 		}
 
-		var appErr *errs.AppError
+		var appErr *pkgerrs.AppError
 		if errors.As(err, &appErr) {
 			c.JSON(appErr.HttpStatusCode, appErr)
 		} else {
-			wrapped := errs.ErrInternal.WithError(err)
+			wrapped := pkgerrs.ErrInternal.WithError(err)
 			c.JSON(http.StatusInternalServerError, wrapped)
 		}
 		return

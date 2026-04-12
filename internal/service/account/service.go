@@ -14,6 +14,7 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	cacherepo "github.com/sirawong/simple-banking-api/internal/repository/cache"
 	dbrepo "github.com/sirawong/simple-banking-api/internal/repository/db"
+	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type Service interface {
@@ -34,7 +35,7 @@ func ProvideService(accountRepo dbrepo.AccountRepository, cache cacherepo.Reposi
 func (s *service) CreateAccount(ctx context.Context, userID, currency string) (*entity.Account, error) {
 	uid, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, errs.ErrBadRequest.New("invalid user_id: %s", userID)
+		return nil, pkgerrs.ErrBadRequest.New("invalid user_id: %s", userID)
 	}
 	account := &entity.Account{
 		UserID:        uid,

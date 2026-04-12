@@ -13,6 +13,7 @@ import (
 	internal_repository_db_migrate "github.com/sirawong/simple-banking-api/internal/repository/db/migrate"
 	internal_server "github.com/sirawong/simple-banking-api/internal/server"
 	internal_service_account "github.com/sirawong/simple-banking-api/internal/service/account"
+	internal_service_auth "github.com/sirawong/simple-banking-api/internal/service/auth"
 	internal_service_transaction "github.com/sirawong/simple-banking-api/internal/service/transaction"
 )
 
@@ -27,6 +28,7 @@ var AdapterSet = wire.NewSet(
 )
 
 var HandlerSet = wire.NewSet(
+	internal_handler_handler.ProvideAuthHandler,
 	internal_handler_handler.ProvideTransactionHandler,
 	internal_handler_handler.ProvideAccountHandler,
 	internal_handler.ProvideRouter,
@@ -38,6 +40,7 @@ var Migrate = wire.NewSet(
 
 var RepositorySet = wire.NewSet(
 	internal_repository_cache.ProvideCacheRepository,
+	internal_repository_db.ProvideTokenRepository,
 	internal_repository_db.ProvideUserRepository,
 	internal_repository_db.ProvideTransactionRepository,
 	internal_repository_db.ProvideAccountRepository,
@@ -46,5 +49,6 @@ var RepositorySet = wire.NewSet(
 
 var ServiceSet = wire.NewSet(
 	internal_service_transaction.ProvideService,
+	internal_service_auth.ProvideService,
 	internal_service_account.ProvideService,
 )

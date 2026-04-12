@@ -7,17 +7,18 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
 )
 
 type userRepository struct {
-	db *gorm.DB
+	db *adapterdb.DB
 }
 
 // @wire:set(name=RepositorySet)
-func ProvideUserRepository(db *gorm.DB) UserRepository {
+func ProvideUserRepository(db *adapterdb.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
@@ -47,7 +48,8 @@ func (r *userRepository) Create(ctx context.Context, user *entity.User) error {
 	if user.ID == uuid.Nil {
 		user.ID = uuid.New()
 	}
-	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
+	m := model.FromEntityUser(user)
+	if err := r.db.WithContext(ctx).Create(m).Error; err != nil {
 		if isDuplicateError(err) {
 			return errs.ErrDuplicateUser
 		}

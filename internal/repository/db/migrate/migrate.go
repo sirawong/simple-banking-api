@@ -1,24 +1,24 @@
 package migrate
 
 import (
-	"gorm.io/gorm"
-
-	"github.com/sirawong/simple-banking-api/internal/domain/entity"
+	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
+	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
 )
 
 type App struct {
-	db *gorm.DB
+	db *adapterdb.DB
 }
 
 // @wire:set(name=Migrate)
-func ProvideMigrate(db *gorm.DB) *App {
+func ProvideMigrate(db *adapterdb.DB) *App {
 	return &App{db: db}
 }
 
 func (a *App) Run() error {
 	return a.db.AutoMigrate(
-		&entity.User{},
-		&entity.Account{},
-		&entity.Transaction{},
+		&model.User{},
+		&model.Account{},
+		&model.Transaction{},
+		&model.RefreshToken{},
 	)
 }

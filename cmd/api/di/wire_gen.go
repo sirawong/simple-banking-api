@@ -16,38 +16,62 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/repository/db"
 	"github.com/sirawong/simple-banking-api/internal/server"
 	"github.com/sirawong/simple-banking-api/internal/service/account"
+	authsvc "github.com/sirawong/simple-banking-api/internal/service/auth"
 	"github.com/sirawong/simple-banking-api/internal/service/transaction"
+	pkgjwt "github.com/sirawong/simple-banking-api/pkg/jwt"
 	"github.com/sirawong/simple-banking-api/pkg/logger"
 )
-
-// Injectors from wire.go:
 
 func InitializeApp(log *logger.Logger) (*server.App, func(), error) {
 	configConfig, err := config.ProvideConfig()
 	if err != nil {
 		return nil, nil, err
 	}
-	gormDB, cleanup, err := adapterdb.ProvideDB(configConfig)
+	ok := false
+
+	gormDB, cleanupDB, err := adapterdb.ProvideDB(configConfig)
 	if err != nil {
 		return nil, nil, err
 	}
+	defer func() {
+		if !ok {
+			cleanupDB()
+		}
+	}()
+
+	client, cleanupRedis, err := adapterredis.ProvideRedisClient(configConfig)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() {
+		if !ok {
+			cleanupRedis()
+		}
+	}()
+
+	jwtManager := pkgjwt.ProvideManager(configConfig)
+
+	userRepository := db.ProvideUserRepository(gormDB)
+	tokenRepository := db.ProvideTokenRepository(gormDB)
+	authService := authsvc.ProvideService(configConfig, jwtManager, userRepository, tokenRepository)
+	authHandler := handler.ProvideAuthHandler(authService)
+
 	accountRepository := db.ProvideAccountRepository(gormDB)
-	client, cleanup2, err := adapterredis.ProvideRedisClient(configConfig)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
 	repository := cache.ProvideCacheRepository(client)
-	service := account.ProvideService(accountRepository, repository)
+	accountService := account.ProvideService(accountRepository, repository)
+
 	txManager := db.ProvideTxManager(gormDB)
 	transactionRepository := db.ProvideTransactionRepository(gormDB)
 	transactionService := transaction.ProvideService(txManager, accountRepository, transactionRepository, repository)
-	accountHandler := handler.ProvideAccountHandler(service, transactionService)
+
+	accountHandler := handler.ProvideAccountHandler(accountService, transactionService)
 	transactionHandler := handler.ProvideTransactionHandler(transactionService)
-	engine := handler2.ProvideRouter(accountHandler, transactionHandler, log)
+	engine := handler2.ProvideRouter(jwtManager, authHandler, accountHandler, transactionHandler, log)
 	app := server.ProvideServer(configConfig, engine)
+
+	ok = true
 	return app, func() {
-		cleanup2()
-		cleanup()
+		cleanupRedis()
+		cleanupDB()
 	}, nil
 }

@@ -7,17 +7,19 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
+	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type accountRepository struct {
-	db *gorm.DB
+	db *adapterdb.DB
 }
 
 // @wire:set(name=RepositorySet)
-func ProvideAccountRepository(db *gorm.DB) AccountRepository {
+func ProvideAccountRepository(db *adapterdb.DB) AccountRepository {
 	return &accountRepository{db: db}
 }
 
@@ -27,7 +29,7 @@ func (r *accountRepository) FindByID(ctx context.Context, id string) (*entity.Ac
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrAccountNotFound
 		}
-		return nil, errs.ErrInternal.Wrap(err, "Internal error")
+		return nil, pkgerrs.ErrInternal.Wrap(err, "Internal error")
 	}
 	return account.ToDomain(), nil
 }
@@ -35,14 +37,14 @@ func (r *accountRepository) FindByID(ctx context.Context, id string) (*entity.Ac
 func (r *accountRepository) FindByUserID(ctx context.Context, userID string) ([]*entity.Account, error) {
 	var accounts model.Accounts
 	if err := dbFromCtx(ctx, r.db).Where("user_id = ? AND deleted_at IS NULL", userID).Find(&accounts).Error; err != nil {
-		return nil, errs.ErrInternal.Wrap(err, "Internal error")
+		return nil, pkgerrs.ErrInternal.Wrap(err, "Internal error")
 	}
 	return accounts.ToEntities(), nil
 }
 
 func (r *accountRepository) FindByIDForUpdate(ctx context.Context, id string) (*entity.Account, error) {
 	if _, ok := ctx.Value(txContextKey{}).(*gorm.DB); !ok {
-		return nil, errs.ErrInternal.New("FindByIDForUpdate must be called within a transaction")
+		return nil, pkgerrs.ErrInternal.New("FindByIDForUpdate must be called within a transaction")
 	}
 	var account model.Account
 	if err := dbFromCtx(ctx, r.db).Set("gorm:query_option", "FOR UPDATE").
@@ -50,7 +52,7 @@ func (r *accountRepository) FindByIDForUpdate(ctx context.Context, id string) (*
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errs.ErrAccountNotFound
 		}
-		return nil, errs.ErrInternal.Wrap(err, "Internal error")
+		return nil, pkgerrs.ErrInternal.Wrap(err, "Internal error")
 	}
 	return account.ToDomain(), nil
 }
@@ -64,7 +66,7 @@ func (r *accountRepository) Create(ctx context.Context, account *entity.Account)
 		if isDuplicateError(err) {
 			return errs.ErrDuplicateAccount
 		}
-		return errs.ErrInternal.Wrap(err, "Internal error")
+		return pkgerrs.ErrInternal.Wrap(err, "Internal error")
 	}
 	return nil
 }
@@ -72,7 +74,7 @@ func (r *accountRepository) Create(ctx context.Context, account *entity.Account)
 func (r *accountRepository) Update(ctx context.Context, account *entity.Account) error {
 	m := model.FromEntityAccount(account)
 	if m == nil {
-		return errs.ErrBadRequest.New("invalid account")
+		return pkgerrs.ErrBadRequest.New("invalid account")
 	}
 	return dbFromCtx(ctx, r.db).Save(m).Error
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+
+	adapterdb "github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 )
 
 // txContextKey is an unexported key for storing a gorm transaction in context.
@@ -11,7 +13,7 @@ type txContextKey struct{}
 
 // dbFromCtx returns the transaction stored in ctx if one exists, otherwise the base db.
 // Both are scoped with the given context.
-func dbFromCtx(ctx context.Context, base *gorm.DB) *gorm.DB {
+func dbFromCtx(ctx context.Context, base *adapterdb.DB) *gorm.DB {
 	if tx, ok := ctx.Value(txContextKey{}).(*gorm.DB); ok && tx != nil {
 		return tx.WithContext(ctx)
 	}
@@ -19,11 +21,11 @@ func dbFromCtx(ctx context.Context, base *gorm.DB) *gorm.DB {
 }
 
 type gormTxManager struct {
-	db *gorm.DB
+	db *adapterdb.DB
 }
 
 // @wire:set(name=RepositorySet)
-func ProvideTxManager(db *gorm.DB) TxManager {
+func ProvideTxManager(db *adapterdb.DB) TxManager {
 	return &gormTxManager{db: db}
 }
 

@@ -5,7 +5,6 @@ import (
 
 	dtoreq "github.com/sirawong/simple-banking-api/internal/handler/dto/request"
 	dtores "github.com/sirawong/simple-banking-api/internal/handler/dto/response"
-	"github.com/sirawong/simple-banking-api/internal/handler/response"
 	transaction "github.com/sirawong/simple-banking-api/internal/service/transaction"
 )
 
@@ -32,12 +31,12 @@ func ProvideTransactionHandler(txSvc transaction.Service) *TransactionHandler {
 func (h *TransactionHandler) Deposit(c *gin.Context) {
 	var req dtoreq.DepositRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.HandleResponse(c, nil, err)
+		dtores.HandleResponse(c, nil, err)
 		return
 	}
 
 	tx, err := h.txSvc.Deposit(c.Request.Context(), req.AccountID, req.Amount)
-	response.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
+	dtores.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
 }
 
 // Withdraw godoc
@@ -55,12 +54,12 @@ func (h *TransactionHandler) Deposit(c *gin.Context) {
 func (h *TransactionHandler) Withdraw(c *gin.Context) {
 	var req dtoreq.WithdrawRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.HandleResponse(c, nil, err)
+		dtores.HandleResponse(c, nil, err)
 		return
 	}
 
 	tx, err := h.txSvc.Withdraw(c.Request.Context(), req.AccountID, req.Amount)
-	response.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
+	dtores.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
 }
 
 // Transfer godoc
@@ -78,10 +77,10 @@ func (h *TransactionHandler) Withdraw(c *gin.Context) {
 func (h *TransactionHandler) Transfer(c *gin.Context) {
 	var req dtoreq.TransferRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.HandleResponse(c, nil, err)
+		dtores.HandleResponse(c, nil, err)
 		return
 	}
 
 	tx, err := h.txSvc.Transfer(c.Request.Context(), req.FromAccountID, req.ToAccountID, req.Amount)
-	response.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
+	dtores.HandleResponse(c, dtores.FromEntityTransaction(tx), err)
 }

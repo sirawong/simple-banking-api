@@ -5,7 +5,6 @@ import (
 
 	dtoreq "github.com/sirawong/simple-banking-api/internal/handler/dto/request"
 	dtores "github.com/sirawong/simple-banking-api/internal/handler/dto/response"
-	"github.com/sirawong/simple-banking-api/internal/handler/response"
 	account "github.com/sirawong/simple-banking-api/internal/service/account"
 	transaction "github.com/sirawong/simple-banking-api/internal/service/transaction"
 )
@@ -35,12 +34,12 @@ func ProvideAccountHandler(accountSvc account.Service, txSvc transaction.Service
 func (h *AccountHandler) CreateAccount(c *gin.Context) {
 	var req dtoreq.CreateAccountRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.HandleCreatedResponse(c, nil, err)
+		dtores.HandleCreatedResponse(c, nil, err)
 		return
 	}
 
 	acct, err := h.accountSvc.CreateAccount(c.Request.Context(), req.UserID, req.Currency)
-	response.HandleCreatedResponse(c, dtores.FromEntityAccount(acct), err)
+	dtores.HandleCreatedResponse(c, dtores.FromEntityAccount(acct), err)
 }
 
 // GetAccount godoc
@@ -56,10 +55,10 @@ func (h *AccountHandler) GetAccount(c *gin.Context) {
 	id := c.Param("id")
 	balance, err := h.accountSvc.GetBalance(c.Request.Context(), id)
 	if err != nil {
-		response.HandleResponse(c, nil, err)
+		dtores.HandleResponse(c, nil, err)
 		return
 	}
-	response.HandleResponse(c, dtores.BalanceResponse{AccountID: id, Balance: balance}, nil)
+	dtores.HandleResponse(c, dtores.BalanceResponse{AccountID: id, Balance: balance}, nil)
 }
 
 // ListTransactions godoc
@@ -77,16 +76,16 @@ func (h *AccountHandler) ListTransactions(c *gin.Context) {
 	id := c.Param("id")
 	var req dtoreq.ListTransactionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.HandleResponse(c, nil, err)
+		dtores.HandleResponse(c, nil, err)
 		return
 	}
 
 	txs, total, err := h.txSvc.ListByAccount(c.Request.Context(), id, req.Page, req.Limit)
 	if err != nil {
-		response.HandleResponse(c, nil, err)
+		dtores.HandleResponse(c, nil, err)
 		return
 	}
-	response.HandleResponse(c, dtores.TransactionListResponse{
+	dtores.HandleResponse(c, dtores.TransactionListResponse{
 		Transactions: dtores.FromEntityTransactions(txs),
 		Total:        total,
 		Page:         req.Page,
