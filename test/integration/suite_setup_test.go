@@ -19,22 +19,26 @@ import (
 var (
 	sharedDB    *testutil.TestDB
 	sharedRedis *testutil.TestRedis
+	cfg         *config.Config
 )
 
 func TestMain(m *testing.M) {
 	err := os.Setenv("ENV_FILE", "../../.env.test")
 	if err != nil {
-		panic("failed to get env file: " + err.Error())
+		panic("load config: " + err.Error())
+	}
+	cfg, err = config.ProvideConfig()
+	if err != nil {
+		panic("load config: " + err.Error())
 	}
 
-	ctx := context.Background()
-
-	sharedDB, err = testutil.StartTestDB(ctx)
+	sharedDB, err = testutil.StartTestDB(cfg)
 	if err != nil {
 		panic("failed to connect to test DB: " + err.Error())
 	}
 
-	sharedRedis, err = testutil.StartTestRedis(ctx)
+	ctx := context.Background()
+	sharedRedis, err = testutil.StartTestRedis(ctx, cfg)
 	if err != nil {
 		panic("failed to connect to test Redis: " + err.Error())
 	}
@@ -52,7 +56,7 @@ type BaseSuite struct {
 	ctx        context.Context
 	db         *adapterdb.DB
 	router     *gin.Engine
-	jwtManager pkgjwt.Manager
+	jwtManager pkgjwt.JWTManager
 }
 
 func (s *BaseSuite) SetupSuite() {
@@ -60,13 +64,12 @@ func (s *BaseSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.db = sharedDB.DB
 
-	cfg, err := config.ProvideConfig()
-	s.Require().NoError(err)
-	s.jwtManager = pkgjwt.ProvideManager(cfg)
-
 	log := logger.ProvideGlobalLogger()
-	s.router, err = testdi.InitializeRouter(s.db, sharedRedis.Client, log)
+	container, err := testdi.InitializeTestContainer(cfg, s.db, sharedRedis.Client, log)
 	s.Require().NoError(err)
+
+	s.router = container.Router
+	s.jwtManager = container.JWTManager
 }
 
 func (s *BaseSuite) SetupTest() {

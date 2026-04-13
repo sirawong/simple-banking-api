@@ -18,6 +18,7 @@ import (
 
 type TransactionServiceSuite struct {
 	suite.Suite
+	txm *dbmock.MockTxManager
 	ar  *dbmock.MockAccountRepository
 	tr  *dbmock.MockTransactionRepository
 	cr  *cachemock.MockRepository
@@ -25,15 +26,23 @@ type TransactionServiceSuite struct {
 }
 
 func (s *TransactionServiceSuite) SetupTest() {
+	s.txm = dbmock.NewMockTxManager(s.T())
 	s.ar = dbmock.NewMockAccountRepository(s.T())
 	s.tr = dbmock.NewMockTransactionRepository(s.T())
 	s.cr = cachemock.NewMockRepository(s.T())
-	// nil TxManager: only early-return error paths are tested here; happy paths need a real DB.
-	s.svc = ProvideService(nil, s.ar, s.tr, s.cr)
+	s.svc = ProvideService(s.txm, s.ar, s.tr, s.cr)
 }
 
 func TestTransactionServiceSuite(t *testing.T) {
 	suite.Run(t, new(TransactionServiceSuite))
+}
+
+// execTx makes the mock TxManager execute the closure, simulating a real transaction.
+func (s *TransactionServiceSuite) execTx() {
+	s.txm.EXPECT().Transaction(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+			return fn(ctx)
+		})
 }
 
 func (s *TransactionServiceSuite) TestTransfer_SameAccount() {
@@ -42,22 +51,53 @@ func (s *TransactionServiceSuite) TestTransfer_SameAccount() {
 }
 
 func (s *TransactionServiceSuite) TestDeposit_AccountNotFound() {
-	s.ar.EXPECT().FindByAccountNumber(mock.Anything, "acc-missing").Return(nil, errs.ErrAccountNotFound)
+	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+	s.execTx()
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-missing").Return(nil, errs.ErrAccountNotFound)
 
 	_, err := s.svc.Deposit(context.Background(), "user-1", "acc-missing", decimal.NewFromFloat(100))
 	s.ErrorIs(err, errs.ErrAccountNotFound)
 }
 
+func (s *TransactionServiceSuite) TestDeposit_Forbidden() {
+	ownerID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	otherID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+	s.execTx()
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-1").Return(&entity.Account{UserID: ownerID}, nil)
+
+	_, err := s.svc.Deposit(context.Background(), otherID.String(), "acc-1", decimal.NewFromFloat(100))
+	s.ErrorIs(err, errs.ErrForbidden)
+}
+
 func (s *TransactionServiceSuite) TestWithdraw_AccountNotFound() {
-	s.ar.EXPECT().FindByAccountNumber(mock.Anything, "acc-missing").Return(nil, errs.ErrAccountNotFound)
+	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+	s.execTx()
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-missing").Return(nil, errs.ErrAccountNotFound)
 
 	_, err := s.svc.Withdraw(context.Background(), "user-1", "acc-missing", decimal.NewFromFloat(100))
 	s.ErrorIs(err, errs.ErrAccountNotFound)
 }
 
+func (s *TransactionServiceSuite) TestWithdraw_Forbidden() {
+	ownerID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	otherID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
+	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+	s.execTx()
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-1").Return(&entity.Account{
+		UserID:  ownerID,
+		Balance: decimal.NewFromFloat(500),
+	}, nil)
+
+	_, err := s.svc.Withdraw(context.Background(), otherID.String(), "acc-1", decimal.NewFromFloat(100))
+	s.ErrorIs(err, errs.ErrForbidden)
+}
+
 func (s *TransactionServiceSuite) TestWithdraw_InsufficientBalance() {
 	ownerID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
-	s.ar.EXPECT().FindByAccountNumber(mock.Anything, "acc-1").Return(&entity.Account{
+	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+	s.execTx()
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-1").Return(&entity.Account{
 		UserID:  ownerID,
 		Balance: decimal.NewFromFloat(50),
 	}, nil)
@@ -90,29 +130,6 @@ func (s *TransactionServiceSuite) TestListByAccount_EmptyResult() {
 	s.NoError(err)
 	s.Equal(int64(0), total)
 	s.Empty(result)
-}
-
-func (s *TransactionServiceSuite) TestDeposit_Forbidden() {
-	ownerID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
-	otherID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
-	s.ar.EXPECT().FindByAccountNumber(mock.Anything, "acc-1").Return(&entity.Account{
-		UserID: ownerID,
-	}, nil)
-
-	_, err := s.svc.Deposit(context.Background(), otherID.String(), "acc-1", decimal.NewFromFloat(100))
-	s.ErrorIs(err, errs.ErrForbidden)
-}
-
-func (s *TransactionServiceSuite) TestWithdraw_Forbidden() {
-	ownerID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
-	otherID := uuid.MustParse("00000000-0000-0000-0000-000000000002")
-	s.ar.EXPECT().FindByAccountNumber(mock.Anything, "acc-1").Return(&entity.Account{
-		UserID:  ownerID,
-		Balance: decimal.NewFromFloat(500),
-	}, nil)
-
-	_, err := s.svc.Withdraw(context.Background(), otherID.String(), "acc-1", decimal.NewFromFloat(100))
-	s.ErrorIs(err, errs.ErrForbidden)
 }
 
 func (s *TransactionServiceSuite) TestListByAccount_AccountNotFound() {

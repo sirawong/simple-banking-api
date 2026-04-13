@@ -29,14 +29,14 @@ func InitializeApp(log *logger.Logger) (*server.App, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	manager := jwt.ProvideManager(configConfig)
+	jwtManager := jwt.ProvideJWTManager(configConfig)
 	adapterdbDB, cleanup, err := adapterdb.ProvideDB(configConfig)
 	if err != nil {
 		return nil, nil, err
 	}
 	userRepository := db.ProvideUserRepository(adapterdbDB)
 	tokenRepository := db.ProvideTokenRepository(adapterdbDB)
-	service := auth.ProvideService(configConfig, manager, userRepository, tokenRepository)
+	service := auth.ProvideService(configConfig, jwtManager, userRepository, tokenRepository)
 	authHandler := handler.ProvideAuthHandler(service)
 	accountRepository := db.ProvideAccountRepository(adapterdbDB)
 	client, cleanup2, err := adapterredis.ProvideRedisClient(configConfig)
@@ -51,7 +51,7 @@ func InitializeApp(log *logger.Logger) (*server.App, func(), error) {
 	transactionService := transaction.ProvideService(txManager, accountRepository, transactionRepository, repository)
 	accountHandler := handler.ProvideAccountHandler(accountService, transactionService)
 	transactionHandler := handler.ProvideTransactionHandler(transactionService)
-	engine := handler2.ProvideRouter(manager, authHandler, accountHandler, transactionHandler, log)
+	engine := handler2.ProvideRouter(jwtManager, authHandler, accountHandler, transactionHandler, log)
 	app := server.ProvideServer(configConfig, engine)
 	return app, func() {
 		cleanup2()

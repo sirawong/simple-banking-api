@@ -11,13 +11,13 @@ import (
 
 type Transaction struct {
 	ID            uuid.UUID
-	FromAccountID *uuid.UUID
-	ToAccountID   *uuid.UUID
 	Amount        decimal.Decimal
 	Type          constrant.TransactionType
 	Status        constrant.TransactionStatus
 	Note          *string
 	CreatedAt     time.Time
+	FromAccountID *uuid.UUID
 	FromAccount   *Account
+	ToAccountID   *uuid.UUID
 	ToAccount     *Account
 }

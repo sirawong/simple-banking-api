@@ -14,7 +14,7 @@ import (
 
 // @wire:set(name=HandlerSet)
 func ProvideRouter(
-	jwtManager pkgjwt.Manager,
+	jwtManager pkgjwt.JWTManager,
 	authHandler *handlerhttp.AuthHandler,
 	accountHandler *handlerhttp.AccountHandler,
 	txHandler *handlerhttp.TransactionHandler,

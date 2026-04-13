@@ -11,16 +11,17 @@ import (
 )
 
 type Transaction struct {
-	ID            uuid.UUID                   `gorm:"type:uuid;primaryKey"`
-	FromAccountID *uuid.UUID                  `gorm:"type:uuid;index"`
-	ToAccountID   *uuid.UUID                  `gorm:"type:uuid;index"`
-	Amount        decimal.Decimal             `gorm:"type:decimal(20,2);not null"`
-	Type          constrant.TransactionType   `gorm:"type:varchar(20);not null"`
-	Status        constrant.TransactionStatus `gorm:"type:varchar(20);not null;default:pending"`
-	Note          *string                     `gorm:"type:text"`
-	CreatedAt     time.Time
-	FromAccount   *Account `gorm:"foreignKey:FromAccountID"`
-	ToAccount     *Account `gorm:"foreignKey:ToAccountID"`
+	ID        uuid.UUID                   `gorm:"type:uuid;primaryKey"`
+	Amount    decimal.Decimal             `gorm:"type:decimal(20,2);not null"`
+	Type      constrant.TransactionType   `gorm:"type:varchar(20);not null"`
+	Status    constrant.TransactionStatus `gorm:"type:varchar(20);not null;default:pending"`
+	Note      *string                     `gorm:"type:text"`
+	CreatedAt time.Time
+
+	FromAccountID *uuid.UUID `gorm:"type:uuid;index"`
+	FromAccount   *Account   `gorm:"foreignKey:FromAccountID"`
+	ToAccountID   *uuid.UUID `gorm:"type:uuid;index"`
+	ToAccount     *Account   `gorm:"foreignKey:ToAccountID"`
 }
 
 func (Transaction) TableName() string {

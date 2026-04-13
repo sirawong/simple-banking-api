@@ -7,5 +7,5 @@ import (
 )
 
 var PkgSet = wire.NewSet(
-	pkg_jwt.ProvideManager,
+	pkg_jwt.ProvideJWTManager,
 )

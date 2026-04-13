@@ -3,24 +3,22 @@ package testutil
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/redis/go-redis/v9"
-)
 
-const defaultTestRedisAddr = "localhost:6380"
+	"github.com/sirawong/simple-banking-api/internal/config"
+)
 
 type TestRedis struct {
 	Client *redis.Client
 }
 
-func StartTestRedis(ctx context.Context) (*TestRedis, error) {
-	addr := os.Getenv("TEST_REDIS_ADDR")
-	if addr == "" {
-		addr = defaultTestRedisAddr
-	}
-
-	client := redis.NewClient(&redis.Options{Addr: addr})
+func StartTestRedis(ctx context.Context, cfg *config.Config) (*TestRedis, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port),
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
 	if err := client.Ping(ctx).Err(); err != nil {
 		_ = client.Close()
 		return nil, fmt.Errorf("redis ping: %w", err)

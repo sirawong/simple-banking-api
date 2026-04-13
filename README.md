@@ -41,24 +41,34 @@ coverage.
 
 ### Steps
 
+**1. Clone the repository**
 ```bash
-# 1. Clone the repository
 git clone <repo-url>
 cd simple-banking-api
+```
 
-# 2. Copy environment config
+**2. Copy environment config**
+```bash
 cp .env.example .env
+```
 
-# 3. Start infrastructure (PostgreSQL + Redis)
+**3. Start infrastructure (PostgreSQL + Redis)**
+```bash
 docker compose up -d postgres redis
+```
 
-# 4. Run database migrations
+**4. Run database migrations**
+```bash
 make migrate
+```
 
-# 5. (Optional) Seed demo users — password: Password@123
+**5. (Optional) Seed demo users — password: `Password@123`**
+```bash
 psql -h localhost -U postgres -d banking -f db/seeds/001_users.sql
+```
 
-# 6. Start the API server
+**6. Start the API server**
+```bash
 make run
 ```
 
@@ -72,13 +82,16 @@ Swagger UI at **http://localhost:8080/swagger/index.html**
 To run the entire stack (infrastructure + API) with a single command:
 
 ```bash
-# Build and start everything
 docker compose up --build -d
+```
 
-# Stream logs
+Stream logs:
+```bash
 make docker-logs
+```
 
-# Stop
+Stop:
+```bash
 make docker-down
 ```
 
@@ -155,26 +168,32 @@ echo "Alice: $ALICE_ACC  |  Bob: $BOB_ACC"
 
 ### Scenario 1 — Happy path (deposit → transfer → withdraw)
 
+Deposit 1,000 into Alice:
 ```bash
-# Deposit 1,000 into Alice
 curl -s -X POST http://localhost:8080/api/v1/transactions/deposit \
   -H "Authorization: Bearer $ALICE_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"1000\"}" | jq
+```
 
-# Transfer 300 from Alice to Bob
+Transfer 300 from Alice to Bob:
+```bash
 curl -s -X POST http://localhost:8080/api/v1/transactions/transfer \
   -H "Authorization: Bearer $ALICE_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"fromAccountNumber\":\"$ALICE_ACC\",\"toAccountNumber\":\"$BOB_ACC\",\"amount\":\"300\"}" | jq
+```
 
-# Bob withdraws 200
+Bob withdraws 200:
+```bash
 curl -s -X POST http://localhost:8080/api/v1/transactions/withdraw \
   -H "Authorization: Bearer $BOB_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"accountNumber\":\"$BOB_ACC\",\"amount\":\"200\"}" | jq
+```
 
-# Final balances: Alice = 700, Bob = 100
+Final balances — Alice = 700, Bob = 100:
+```bash
 curl -s http://localhost:8080/api/v1/accounts/$ALICE_ACC \
   -H "Authorization: Bearer $ALICE_TOKEN" | jq '.balance'
 curl -s http://localhost:8080/api/v1/accounts/$BOB_ACC \
@@ -186,7 +205,6 @@ curl -s http://localhost:8080/api/v1/accounts/$BOB_ACC \
 ### Scenario 2 — Insufficient balance (expect 422)
 
 ```bash
-# Try to withdraw more than Alice balance
 curl -s -X POST http://localhost:8080/api/v1/transactions/withdraw \
   -H "Authorization: Bearer $ALICE_TOKEN" \
   -H "Content-Type: application/json" \
@@ -202,14 +220,16 @@ Expected:
 
 ### Scenario 3 — Forbidden (access another user's account, expect 403)
 
+Bob tries to deposit into Alice's account:
 ```bash
-# Bob tries to deposit into Alice account
 curl -s -X POST http://localhost:8080/api/v1/transactions/deposit \
   -H "Authorization: Bearer $BOB_TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"500\"}" | jq
+```
 
-# Bob tries to read Alice balance
+Bob tries to read Alice's balance:
+```bash
 curl -s http://localhost:8080/api/v1/accounts/$ALICE_ACC \
   -H "Authorization: Bearer $BOB_TOKEN" | jq
 ```
@@ -253,13 +273,15 @@ Expected:
 
 ### Scenario 6 — Refresh token
 
+Login and save the refresh token:
 ```bash
-# Login to get a refresh token
 ALICE_REFRESH=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"alice@example.com","password":"Password@123"}' | jq -r '.refreshToken')
+```
 
-# Exchange for a new token pair
+Exchange for a new token pair:
+```bash
 curl -s -X POST http://localhost:8080/api/v1/auth/refresh \
   -H "Content-Type: application/json" \
   -d "{\"refreshToken\":\"$ALICE_REFRESH\"}" | jq
@@ -269,22 +291,86 @@ curl -s -X POST http://localhost:8080/api/v1/auth/refresh \
 
 ### Scenario 7 — Pagination on transaction history
 
+Create 5 deposits first:
 ```bash
-# Deposit a few times first
 for i in 1 2 3 4 5; do
   curl -s -X POST http://localhost:8080/api/v1/transactions/deposit \
     -H "Authorization: Bearer $ALICE_TOKEN" \
     -H "Content-Type: application/json" \
     -d "{\"accountNumber\":\"$ALICE_ACC\",\"amount\":\"$((i * 10))\"}" > /dev/null
 done
+```
 
-# Page 1 — latest 3 transactions
+Page 1 — latest 3 transactions:
+```bash
 curl -s "http://localhost:8080/api/v1/accounts/$ALICE_ACC/transactions?page=1&limit=3" \
-  -H "Authorization: Bearer $ALICE_TOKEN" | jq '{total, page, limit, count: (.transactions | length)}'
+  -H "Authorization: Bearer $ALICE_TOKEN" | jq
+```
 
-# Page 2
+```json
+{
+  "transactions": [
+    {
+      "id": "...",
+      "toAccountNumber": "8602874206",
+      "amount": "50",
+      "type": "deposit",
+      "status": "success",
+      "createdAt": "2025-01-01T00:00:05Z"
+    },
+    {
+      "id": "...",
+      "toAccountNumber": "8602874206",
+      "amount": "40",
+      "type": "deposit",
+      "status": "success",
+      "createdAt": "2025-01-01T00:00:04Z"
+    },
+    {
+      "id": "...",
+      "toAccountNumber": "8602874206",
+      "amount": "30",
+      "type": "deposit",
+      "status": "success",
+      "createdAt": "2025-01-01T00:00:03Z"
+    }
+  ],
+  "total": 5,
+  "page": 1,
+  "limit": 3
+}
+```
+
+Page 2 — remaining 2 transactions:
+```bash
 curl -s "http://localhost:8080/api/v1/accounts/$ALICE_ACC/transactions?page=2&limit=3" \
-  -H "Authorization: Bearer $ALICE_TOKEN" | jq '{total, page, limit, count: (.transactions | length)}'
+  -H "Authorization: Bearer $ALICE_TOKEN" | jq
+```
+
+```json
+{
+  "transactions": [
+    {
+      "id": "...",
+      "toAccountNumber": "8602874206",
+      "amount": "20",
+      "type": "deposit",
+      "status": "success",
+      "createdAt": "2025-01-01T00:00:02Z"
+    },
+    {
+      "id": "...",
+      "toAccountNumber": "8602874206",
+      "amount": "10",
+      "type": "deposit",
+      "status": "success",
+      "createdAt": "2025-01-01T00:00:01Z"
+    }
+  ],
+  "total": 5,
+  "page": 2,
+  "limit": 3
+}
 ```
 
 ---
@@ -306,14 +392,18 @@ Integration tests in `test/integration/` run against real PostgreSQL and Redis i
 `docker-compose.test.yml` on ports 5433 / 6380). Each test case runs in a clean state — all tables are truncated between
 tests.
 
+All tests — unit + integration:
 ```bash
-# All tests: unit + integration
 make test
+```
 
-# Integration tests only (verbose output)
+Integration tests only (verbose):
+```bash
 make test-integration
+```
 
-# All tests + HTML coverage report
+All tests + HTML coverage report:
+```bash
 make test-cover
 ```
 

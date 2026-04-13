@@ -31,7 +31,6 @@ func New(opts Options) (*Logger, error) {
 	return &Logger{baseLogger: slog.New(handler)}, nil
 }
 
-// ProvideGlobalLogger initialises the singleton logger exactly once.
 // @wire:ignore
 func ProvideGlobalLogger() *Logger {
 	once.Do(func() {

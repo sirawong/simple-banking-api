@@ -32,7 +32,6 @@ func (s *BaseSuite) requireErrMessage(w *httptest.ResponseRecorder, want *errs.A
 	s.Equal(want.Message, body.Message)
 }
 
-// seedUser inserts a user directly into the DB and returns the entity.
 func (s *BaseSuite) seedUser(name, email, password string) *entity.User {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	s.Require().NoError(err)
@@ -47,7 +46,6 @@ func (s *BaseSuite) seedUser(name, email, password string) *entity.User {
 	return m.ToEntity()
 }
 
-// seedAccount inserts an account for the given user and returns the entity.
 func (s *BaseSuite) seedAccount(user *entity.User, currency string) *entity.Account {
 	m := &model.Account{
 		ID:            uuid.New(),
@@ -59,7 +57,6 @@ func (s *BaseSuite) seedAccount(user *entity.User, currency string) *entity.Acco
 	return m.ToDomain()
 }
 
-// seedAccountWithBalance inserts an account with a pre-set balance.
 func (s *BaseSuite) seedAccountWithBalance(user *entity.User, currency string, balance string) *entity.Account {
 	m := &model.Account{
 		ID:            uuid.New(),

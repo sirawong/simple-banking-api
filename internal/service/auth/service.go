@@ -24,14 +24,14 @@ type Service interface {
 }
 
 type service struct {
-	jwtManager pkgjwt.Manager
+	jwtManager pkgjwt.JWTManager
 	refreshTTL time.Duration
 	userRepo   dbrepo.UserRepository
 	tokenRepo  dbrepo.TokenRepository
 }
 
 // @wire:set(name=ServiceSet)
-func ProvideService(cfg *config.Config, jwtManager pkgjwt.Manager, userRepo dbrepo.UserRepository, tokenRepo dbrepo.TokenRepository) Service {
+func ProvideService(cfg *config.Config, jwtManager pkgjwt.JWTManager, userRepo dbrepo.UserRepository, tokenRepo dbrepo.TokenRepository) Service {
 	return &service{
 		jwtManager: jwtManager,
 		refreshTTL: cfg.JWT.RefreshTokenTTL,
@@ -99,7 +99,7 @@ func (s *service) issueTokenPair(ctx context.Context, user *entity.User) (*entit
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 
-	rawRefresh, err := utils.GenerateOpaqueToken()
+	rawRefresh, err := utils.GenerateRefreshToken()
 	if err != nil {
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}

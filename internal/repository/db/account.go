@@ -56,6 +56,7 @@ func (r *accountRepository) FindByAccountNumberForUpdate(ctx context.Context, ac
 	if err := requireTx(ctx); err != nil {
 		return nil, err
 	}
+
 	var account model.Account
 	err := dbFromCtx(ctx, r.db).
 		Scopes(notDeleted).
@@ -89,6 +90,7 @@ func (r *accountRepository) Update(ctx context.Context, account *entity.Account)
 	if err := requireTx(ctx); err != nil {
 		return err
 	}
+
 	a := model.FromEntityAccount(account)
 	if a == nil {
 		return pkgerrs.ErrBadRequest.New("invalid account")

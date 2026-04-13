@@ -14,8 +14,7 @@ func GenerateAccountNumber() string {
 	return fmt.Sprintf("%010d", r.Int63n(9000000000)+1000000000)
 }
 
-// GenerateOpaqueToken generates a cryptographically random token for use as a refresh token.
-func GenerateOpaqueToken() (string, error) {
+func GenerateRefreshToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := cryptoRand.Read(b); err != nil {
 		return "", err

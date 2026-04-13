@@ -25,7 +25,7 @@ func GetAuthUser(ctx context.Context) (*AuthUser, bool) {
 }
 
 // JWTAuth returns a middleware that validates Bearer tokens and injects auth claims into context.
-func JWTAuth(manager pkgjwt.Manager) gin.HandlerFunc {
+func JWTAuth(manager pkgjwt.JWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" || !strings.HasPrefix(header, "Bearer ") {

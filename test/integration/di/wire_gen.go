@@ -7,7 +7,6 @@
 package testdi
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirawong/simple-banking-api/internal/adapter/postgres"
 	"github.com/sirawong/simple-banking-api/internal/config"
@@ -24,17 +23,11 @@ import (
 
 // Injectors from wire.go:
 
-// InitializeRouter wires the full handler stack for integration tests.
-// db and rdb are provided externally; config is loaded from ENV_FILE env var.
-func InitializeRouter(db2 *adapterdb.DB, rdb *redis.Client, log *logger.Logger) (*gin.Engine, error) {
-	configConfig, err := config.ProvideConfig()
-	if err != nil {
-		return nil, err
-	}
-	manager := jwt.ProvideManager(configConfig)
+func InitializeTestContainer(cfg *config.Config, db2 *adapterdb.DB, rdb *redis.Client, log *logger.Logger) (*AppTestContainer, error) {
+	jwtManager := jwt.ProvideJWTManager(cfg)
 	userRepository := db.ProvideUserRepository(db2)
 	tokenRepository := db.ProvideTokenRepository(db2)
-	service := auth.ProvideService(configConfig, manager, userRepository, tokenRepository)
+	service := auth.ProvideService(cfg, jwtManager, userRepository, tokenRepository)
 	authHandler := handler.ProvideAuthHandler(service)
 	accountRepository := db.ProvideAccountRepository(db2)
 	repository := cache.ProvideCacheRepository(rdb)
@@ -44,6 +37,10 @@ func InitializeRouter(db2 *adapterdb.DB, rdb *redis.Client, log *logger.Logger) 
 	transactionService := transaction.ProvideService(txManager, accountRepository, transactionRepository, repository)
 	accountHandler := handler.ProvideAccountHandler(accountService, transactionService)
 	transactionHandler := handler.ProvideTransactionHandler(transactionService)
-	engine := handler2.ProvideRouter(manager, authHandler, accountHandler, transactionHandler, log)
-	return engine, nil
+	engine := handler2.ProvideRouter(jwtManager, authHandler, accountHandler, transactionHandler, log)
+	appTestContainer := &AppTestContainer{
+		Router:     engine,
+		JWTManager: jwtManager,
+	}
+	return appTestContainer, nil
 }

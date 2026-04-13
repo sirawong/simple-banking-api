@@ -44,20 +44,18 @@ func ProvideService(
 }
 
 func (s *service) Deposit(ctx context.Context, userID, accountNumber string, amount decimal.Decimal) (*entity.Transaction, error) {
-	account, err := s.accountRepo.FindByAccountNumber(ctx, accountNumber)
-	if err != nil {
-		return nil, errs.ErrAccountNotFound
-	}
-	if account.UserID.String() != userID {
-		logger.Warn("deposit forbidden", "userID", userID, "accountNumber", accountNumber)
-		return nil, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
-	}
-
-	tx, err := s.applyAndRecord(ctx, account, accountNumber, account.Balance.Add(amount), &entity.Transaction{
-		ToAccountID: &account.ID,
-		Amount:      amount,
-		Type:        constrant.TransactionTypeDeposit,
-		Status:      constrant.TransactionStatusSuccess,
+	account, tx, err := s.applyAndRecord(ctx, accountNumber, func(account *entity.Account) (*entity.Transaction, error) {
+		if account.UserID.String() != userID {
+			logger.Warn("deposit forbidden", "userID", userID, "accountNumber", accountNumber)
+			return nil, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
+		}
+		account.Balance = account.Balance.Add(amount)
+		return &entity.Transaction{
+			ToAccountID: &account.ID,
+			Amount:      amount,
+			Type:        constrant.TransactionTypeDeposit,
+			Status:      constrant.TransactionStatusSuccess,
+		}, nil
 	})
 	if err != nil {
 		return nil, err
@@ -68,24 +66,22 @@ func (s *service) Deposit(ctx context.Context, userID, accountNumber string, amo
 }
 
 func (s *service) Withdraw(ctx context.Context, userID, accountNumber string, amount decimal.Decimal) (*entity.Transaction, error) {
-	account, err := s.accountRepo.FindByAccountNumber(ctx, accountNumber)
-	if err != nil {
-		return nil, err
-	}
-	if account.UserID.String() != userID {
-		logger.Warn("withdraw forbidden", "userID", userID, "accountNumber", accountNumber)
-		return nil, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
-	}
-	if account.Balance.LessThan(amount) {
-		logger.Warn("withdraw insufficient balance", "userID", userID, "accountNumber", accountNumber, "balance", account.Balance, "amount", amount)
-		return nil, errs.ErrInsufficientBalance.New("balance %s is less than requested amount %s", account.Balance, amount)
-	}
-
-	tx, err := s.applyAndRecord(ctx, account, accountNumber, account.Balance.Sub(amount), &entity.Transaction{
-		FromAccountID: &account.ID,
-		Amount:        amount,
-		Type:          constrant.TransactionTypeWithdraw,
-		Status:        constrant.TransactionStatusSuccess,
+	account, tx, err := s.applyAndRecord(ctx, accountNumber, func(account *entity.Account) (*entity.Transaction, error) {
+		if account.UserID.String() != userID {
+			logger.Warn("withdraw forbidden", "userID", userID, "accountNumber", accountNumber)
+			return nil, errs.ErrForbidden.New("account %s does not belong to the authenticated user", accountNumber)
+		}
+		if account.Balance.LessThan(amount) {
+			logger.Warn("withdraw insufficient balance", "userID", userID, "accountNumber", accountNumber, "balance", account.Balance, "amount", amount)
+			return nil, errs.ErrInsufficientBalance.New("balance %s is less than requested amount %s", account.Balance, amount)
+		}
+		account.Balance = account.Balance.Sub(amount)
+		return &entity.Transaction{
+			FromAccountID: &account.ID,
+			Amount:        amount,
+			Type:          constrant.TransactionTypeWithdraw,
+			Status:        constrant.TransactionStatusSuccess,
+		}, nil
 	})
 	if err != nil {
 		return nil, err
@@ -95,36 +91,48 @@ func (s *service) Withdraw(ctx context.Context, userID, accountNumber string, am
 	return tx, nil
 }
 
-// applyAndRecord sets newBalance on the account, persists the update and the transaction record
-// within a single DB transaction, then refreshes the balance cache.
 func (s *service) applyAndRecord(
 	ctx context.Context,
-	account *entity.Account,
 	accountNumber string,
-	newBalance decimal.Decimal,
-	record *entity.Transaction,
-) (*entity.Transaction, error) {
-	_ = s.cache.Delete(ctx, cacheBalanceKey(accountNumber))
+	transform func(*entity.Account) (*entity.Transaction, error),
+) (*entity.Account, *entity.Transaction, error) {
+	err := s.cache.Delete(ctx, cacheBalanceKey(accountNumber))
+	if err != nil {
+		logger.Warn("failed to delete cache", "accountNumber", accountNumber, "err", err)
+	}
 
-	var tx *entity.Transaction
-	err := s.txManager.Transaction(ctx, func(ctx context.Context) error {
-		account.Balance = newBalance
-		if err := s.accountRepo.Update(ctx, account); err != nil {
-			return err
-		}
-		created, err := s.txRepo.Create(ctx, record)
+	var (
+		account *entity.Account
+		tx      *entity.Transaction
+		record  *entity.Transaction
+	)
+	err = s.txManager.Transaction(ctx, func(ctx context.Context) error {
+		account, err = s.accountRepo.FindByAccountNumberForUpdate(ctx, accountNumber)
 		if err != nil {
 			return err
 		}
-		tx = created
-		return nil
+
+		record, err = transform(account)
+		if err != nil {
+			return err
+		}
+
+		if err = s.accountRepo.Update(ctx, account); err != nil {
+			return err
+		}
+		tx, err = s.txRepo.Create(ctx, record)
+		return err
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	_ = s.cache.Set(ctx, cacheBalanceKey(accountNumber), account.Balance.String(), 60*time.Second)
-	return tx, nil
+	err = s.cache.Set(ctx, cacheBalanceKey(accountNumber), account.Balance.String(), 60*time.Second)
+	if err != nil {
+		logger.Warn("failed to set cache", "accountNumber", accountNumber, "err", err)
+	}
+
+	return account, tx, nil
 }
 
 func (s *service) Transfer(ctx context.Context, userID, fromAccountNumber, toAccountNumber string, amount decimal.Decimal) (*entity.Transaction, error) {
@@ -132,16 +140,21 @@ func (s *service) Transfer(ctx context.Context, userID, fromAccountNumber, toAcc
 		return nil, errs.ErrSameAccount
 	}
 
-	_ = s.cache.Delete(ctx, cacheBalanceKey(fromAccountNumber))
-	_ = s.cache.Delete(ctx, cacheBalanceKey(toAccountNumber))
+	err := s.cache.Delete(ctx, cacheBalanceKey(fromAccountNumber))
+	if err != nil {
+		logger.Warn("failed to delete cache", "accountNumber", fromAccountNumber, "err", err)
+	}
+	err = s.cache.Delete(ctx, cacheBalanceKey(toAccountNumber))
+	if err != nil {
+		logger.Warn("failed to delete cache", "accountNumber", fromAccountNumber, "err", err)
+	}
 
 	var (
 		tx   *entity.Transaction
 		from *entity.Account
 		to   *entity.Account
 	)
-	err := s.txManager.Transaction(ctx, func(ctx context.Context) error {
-		var err error
+	err = s.txManager.Transaction(ctx, func(ctx context.Context) error {
 		from, err = s.accountRepo.FindByAccountNumberForUpdate(ctx, fromAccountNumber)
 		if err != nil {
 			return errs.ErrAccountNotFound

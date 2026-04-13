@@ -37,7 +37,7 @@ func (s *AuthServiceSuite) SetupTest() {
 			RefreshTokenTTL: 168 * time.Hour,
 		},
 	}
-	jwtManager := pkgjwt.ProvideManager(cfg)
+	jwtManager := pkgjwt.ProvideJWTManager(cfg)
 	s.svc = ProvideService(cfg, jwtManager, s.ur, s.tr)
 }
 
