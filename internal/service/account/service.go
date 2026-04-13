@@ -50,7 +50,7 @@ func (s *service) CreateAccount(ctx context.Context, userID, currency string) (*
 func (s *service) GetBalance(ctx context.Context, userID, accountNumber string) (decimal.Decimal, error) {
 	account, err := s.accountRepo.FindByAccountNumber(ctx, accountNumber)
 	if err != nil {
-		return decimal.Zero, errs.ErrAccountNotFound
+		return decimal.Zero, err
 	}
 	if account.UserID.String() != userID {
 		logger.Warn("get balance forbidden", "userID", userID, "accountNumber", accountNumber)

@@ -25,6 +25,9 @@ func (r *transactionRepository) Create(ctx context.Context, transaction *entity.
 		return nil, err
 	}
 	tx := model.FromEntityTransaction(transaction)
+	if tx == nil {
+		return nil, pkgerrs.ErrBadRequest
+	}
 	if tx.ID == uuid.Nil {
 		tx.ID = uuid.New()
 	}

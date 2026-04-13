@@ -14,7 +14,6 @@ type Transaction struct {
 	Amount        decimal.Decimal
 	Type          constrant.TransactionType
 	Status        constrant.TransactionStatus
-	Note          *string
 	CreatedAt     time.Time
 	FromAccountID *uuid.UUID
 	FromAccount   *Account

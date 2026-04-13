@@ -166,7 +166,30 @@ echo "Alice: $ALICE_ACC  |  Bob: $BOB_ACC"
 
 ---
 
-### Scenario 1 — Happy path (deposit → transfer → withdraw)
+### Scenario 1 — List accounts
+
+Alice's accounts:
+```bash
+curl -s http://localhost:8080/api/v1/accounts \
+  -H "Authorization: Bearer $ALICE_TOKEN" | jq
+```
+
+```json
+[
+  {
+    "userId": "af6d3a1d-...",
+    "accountNumber": "8602874206",
+    "balance": "0",
+    "currency": "THB"
+  }
+]
+```
+
+Each user sees only their own accounts. Bob will get his own list with his token.
+
+---
+
+### Scenario 2 — Happy path (deposit → transfer → withdraw)
 
 Deposit 1,000 into Alice:
 ```bash
@@ -202,7 +225,7 @@ curl -s http://localhost:8080/api/v1/accounts/$BOB_ACC \
 
 ---
 
-### Scenario 2 — Insufficient balance (expect 422)
+### Scenario 3 — Insufficient balance (expect 422)
 
 ```bash
 curl -s -X POST http://localhost:8080/api/v1/transactions/withdraw \
@@ -218,7 +241,7 @@ Expected:
 
 ---
 
-### Scenario 3 — Forbidden (access another user's account, expect 403)
+### Scenario 4 — Forbidden (access another user's account, expect 403)
 
 Bob tries to deposit into Alice's account:
 ```bash
@@ -241,7 +264,7 @@ Expected:
 
 ---
 
-### Scenario 4 — Invalid token (expect 401)
+### Scenario 5 — Invalid token (expect 401)
 
 ```bash
 curl -s http://localhost:8080/api/v1/accounts \
@@ -255,7 +278,7 @@ Expected:
 
 ---
 
-### Scenario 5 — Transfer to self (expect 400)
+### Scenario 6 — Transfer to self (expect 400)
 
 ```bash
 curl -s -X POST http://localhost:8080/api/v1/transactions/transfer \
@@ -271,7 +294,7 @@ Expected:
 
 ---
 
-### Scenario 6 — Refresh token
+### Scenario 7 — Refresh token
 
 Login and save the refresh token:
 ```bash
@@ -289,7 +312,7 @@ curl -s -X POST http://localhost:8080/api/v1/auth/refresh \
 
 ---
 
-### Scenario 7 — Pagination on transaction history
+### Scenario 8 — Pagination on transaction history
 
 Create 5 deposits first:
 ```bash

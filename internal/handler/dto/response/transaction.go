@@ -17,7 +17,6 @@ type TransactionResponse struct {
 	Amount            decimal.Decimal             `json:"amount"`
 	Type              constrant.TransactionType   `json:"type"`
 	Status            constrant.TransactionStatus `json:"status"`
-	Note              *string                     `json:"note,omitempty"`
 	CreatedAt         time.Time                   `json:"createdAt"`
 }
 
@@ -42,7 +41,6 @@ func FromEntityTransaction(t *entity.Transaction) *TransactionResponse {
 		Amount:            t.Amount,
 		Type:              t.Type,
 		Status:            t.Status,
-		Note:              t.Note,
 		CreatedAt:         t.CreatedAt,
 	}
 }

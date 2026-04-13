@@ -11,6 +11,7 @@ import (
 	"github.com/sirawong/simple-banking-api/internal/domain/entity"
 	"github.com/sirawong/simple-banking-api/internal/errs"
 	"github.com/sirawong/simple-banking-api/internal/repository/db/model"
+	pkgerrs "github.com/sirawong/simple-banking-api/pkg/errs"
 )
 
 type userRepository struct {
@@ -54,6 +55,9 @@ func (r *userRepository) FindByEmail(ctx context.Context, email string) (*entity
 
 func (r *userRepository) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
 	u := model.FromEntityUser(user)
+	if u == nil {
+		return nil, pkgerrs.ErrBadRequest
+	}
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()
 	}

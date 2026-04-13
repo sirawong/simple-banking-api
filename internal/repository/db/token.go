@@ -25,6 +25,9 @@ func ProvideTokenRepository(db *adapterdb.DB) TokenRepository {
 
 func (r *tokenRepository) Create(ctx context.Context, token *entity.RefreshToken) (*entity.RefreshToken, error) {
 	tk := model.FromEntityRefreshToken(token)
+	if tk == nil {
+		return nil, pkgerrs.ErrBadRequest
+	}
 	if tk.ID == uuid.Nil {
 		tk.ID = uuid.New()
 	}

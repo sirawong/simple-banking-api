@@ -27,7 +27,6 @@ var sensitiveKeys = map[string]bool{
 	"token":        true,
 }
 
-// truncate cuts a string to maxFieldLen and appends … if it was longer.
 func truncate(s string) string {
 	if len(s) <= maxFieldLen {
 		return s
@@ -35,8 +34,6 @@ func truncate(s string) string {
 	return s[:maxFieldLen] + "…"
 }
 
-// maskBody parses a JSON body and replaces sensitive field values with [REDACTED].
-// Falls back to a truncated raw string for non-JSON bodies.
 func maskBody(raw []byte) string {
 	if len(raw) == 0 {
 		return ""
@@ -54,7 +51,6 @@ func maskBody(raw []byte) string {
 	return string(masked)
 }
 
-// bodyWriter wraps gin.ResponseWriter and captures up to maxBodyLog bytes of the response body.
 type bodyWriter struct {
 	gin.ResponseWriter
 	buf *bytes.Buffer
@@ -106,7 +102,6 @@ func Logger(log *logger.Logger) gin.HandlerFunc {
 			"req_body", reqBody,
 		}
 
-		// append response body only for errors
 		if status >= 400 {
 			fields = append(fields, "res_body", maskBody(bw.buf.Bytes()))
 		}

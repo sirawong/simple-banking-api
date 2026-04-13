@@ -50,6 +50,23 @@ func (s *TransactionServiceSuite) TestTransfer_SameAccount() {
 	s.ErrorIs(err, errs.ErrSameAccount)
 }
 
+func (s *TransactionServiceSuite) TestTransfer_CurrencyMismatch() {
+	ownerID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
+	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil).Times(2)
+	s.execTx()
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-thb").Return(&entity.Account{
+		UserID:   ownerID,
+		Currency: "THB",
+		Balance:  decimal.NewFromFloat(500),
+	}, nil)
+	s.ar.EXPECT().FindByAccountNumberForUpdate(mock.Anything, "acc-usd").Return(&entity.Account{
+		Currency: "USD",
+	}, nil)
+
+	_, err := s.svc.Transfer(context.Background(), ownerID.String(), "acc-thb", "acc-usd", decimal.NewFromFloat(100))
+	s.ErrorIs(err, errs.ErrCurrencyMismatch)
+}
+
 func (s *TransactionServiceSuite) TestDeposit_AccountNotFound() {
 	s.cr.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
 	s.execTx()

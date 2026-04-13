@@ -15,7 +15,6 @@ type Transaction struct {
 	Amount    decimal.Decimal             `gorm:"type:decimal(20,2);not null"`
 	Type      constrant.TransactionType   `gorm:"type:varchar(20);not null"`
 	Status    constrant.TransactionStatus `gorm:"type:varchar(20);not null;default:pending"`
-	Note      *string                     `gorm:"type:text"`
 	CreatedAt time.Time
 
 	FromAccountID *uuid.UUID `gorm:"type:uuid;index"`
@@ -39,7 +38,6 @@ func (t *Transaction) ToEntity() *entity.Transaction {
 		Amount:        t.Amount,
 		Type:          t.Type,
 		Status:        t.Status,
-		Note:          t.Note,
 		CreatedAt:     t.CreatedAt,
 		FromAccount:   t.FromAccount.ToDomain(),
 		ToAccount:     t.ToAccount.ToDomain(),
@@ -70,7 +68,6 @@ func FromEntityTransaction(t *entity.Transaction) *Transaction {
 		Amount:        t.Amount,
 		Type:          t.Type,
 		Status:        t.Status,
-		Note:          t.Note,
 		CreatedAt:     t.CreatedAt,
 		FromAccount:   FromEntityAccount(t.FromAccount),
 		ToAccount:     FromEntityAccount(t.ToAccount),

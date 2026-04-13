@@ -737,9 +737,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "note": {
-                    "type": "string"
-                },
                 "status": {
                     "$ref": "#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus"
                 },

@@ -32,6 +32,9 @@ func (r *accountRepository) FindByUserID(ctx context.Context, userID string) ([]
 		Where("user_id = ?", userID).
 		Find(&accounts).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errs.ErrAccountNotFound
+		}
 		return nil, pkgerrs.ErrInternal.WithError(err)
 	}
 	return accounts.ToEntities(), nil
@@ -74,6 +77,9 @@ func (r *accountRepository) FindByAccountNumberForUpdate(ctx context.Context, ac
 
 func (r *accountRepository) Create(ctx context.Context, account *entity.Account) (*entity.Account, error) {
 	a := model.FromEntityAccount(account)
+	if a == nil {
+		return nil, pkgerrs.ErrBadRequest
+	}
 	if a.ID == uuid.Nil {
 		a.ID = uuid.New()
 	}

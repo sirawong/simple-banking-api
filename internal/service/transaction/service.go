@@ -168,6 +168,10 @@ func (s *service) Transfer(ctx context.Context, userID, fromAccountNumber, toAcc
 			return errs.ErrAccountNotFound
 		}
 
+		if from.Currency != to.Currency {
+			return errs.ErrCurrencyMismatch.New("cannot transfer between %s and %s accounts", from.Currency, to.Currency)
+		}
+
 		if from.Balance.LessThan(amount) {
 			logger.Warn("transfer insufficient balance", "userID", userID, "fromAccountNumber", fromAccountNumber, "balance", from.Balance, "amount", amount)
 			return errs.ErrInsufficientBalance.New("balance %s is less than requested amount %s", from.Balance, amount)
