@@ -1,0 +1,507 @@
+basePath: /
+definitions:
+  github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus:
+    enum:
+    - pending
+    - success
+    - failed
+    type: string
+    x-enum-varnames:
+    - TransactionStatusPending
+    - TransactionStatusSuccess
+    - TransactionStatusFailed
+  github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionType:
+    enum:
+    - deposit
+    - withdraw
+    - transfer
+    type: string
+    x-enum-varnames:
+    - TransactionTypeDeposit
+    - TransactionTypeWithdraw
+    - TransactionTypeTransfer
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest:
+    properties:
+      currency:
+        type: string
+    required:
+    - currency
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest:
+    properties:
+      accountNumber:
+        type: string
+      amount:
+        type: number
+    required:
+    - accountNumber
+    - amount
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.RefreshTokenRequest:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.TransferRequest:
+    properties:
+      amount:
+        type: number
+      fromAccountNumber:
+        type: string
+      toAccountNumber:
+        type: string
+    required:
+    - amount
+    - fromAccountNumber
+    - toAccountNumber
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest:
+    properties:
+      accountNumber:
+        type: string
+      amount:
+        type: number
+    required:
+    - accountNumber
+    - amount
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse:
+    properties:
+      accountNumber:
+        type: string
+      balance:
+        type: number
+      currency:
+        type: string
+      userId:
+        type: string
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse:
+    properties:
+      accountNumber:
+        type: string
+      balance:
+        type: number
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse:
+    properties:
+      accessToken:
+        type: string
+      expiresIn:
+        type: integer
+      refreshToken:
+        type: string
+      tokenType:
+        type: string
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      transactions:
+        items:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
+        type: array
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      createdAt:
+        type: string
+      fromAccountNumber:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionStatus'
+      toAccountNumber:
+        type: string
+      type:
+        $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_domain_constrant.TransactionType'
+    type: object
+  github_com_sirawong_simple-banking-api_internal_handler_dto_response.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  github_com_sirawong_simple-banking-api_pkg_errs.AppError:
+    properties:
+      detail: {}
+      error_message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A simple banking API with accounts and transactions
+  title: Banking API
+  version: "1.0"
+paths:
+  /api/v1/accounts:
+    get:
+      description: List all accounts belonging to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: List accounts
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank account for a user
+      parameters:
+      - description: Create account request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: Create account
+      tags:
+      - accounts
+  /api/v1/accounts/{accountNumber}:
+    get:
+      description: Get account details including balance
+      parameters:
+      - description: Account Number
+        in: path
+        name: accountNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.BalanceResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: Get account
+      tags:
+      - accounts
+  /api/v1/accounts/{accountNumber}/transactions:
+    get:
+      description: List transactions for an account with pagination
+      parameters:
+      - description: Account Number
+        in: path
+        name: accountNumber
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionListResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: List transactions
+      tags:
+      - accounts
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate with email and password, returns JWT token pair
+      parameters:
+      - description: Login request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      summary: Login
+      tags:
+      - auth
+  /api/v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Exchange a valid refresh token for a new token pair
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TokenPairResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      summary: Refresh token
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Register request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      summary: Register
+      tags:
+      - auth
+  /api/v1/transactions/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit money into an account
+      parameters:
+      - description: Deposit request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: Deposit
+      tags:
+      - transactions
+  /api/v1/transactions/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money between accounts
+      parameters:
+      - description: Transfer request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: Transfer
+      tags:
+      - transactions
+  /api/v1/transactions/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw money from an account
+      parameters:
+      - description: Withdraw request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_request.WithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_internal_handler_dto_response.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/github_com_sirawong_simple-banking-api_pkg_errs.AppError'
+      security:
+      - BearerAuth: []
+      summary: Withdraw
+      tags:
+      - transactions
+securityDefinitions:
+  BearerAuth:
+    description: 'Enter: Bearer <access_token>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
