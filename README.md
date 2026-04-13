@@ -15,6 +15,7 @@ coverage.
 - [API Reference](#api-reference)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
+- [Design Decisions](#design-decisions)
 - [Project Structure](#project-structure)
 - [Database Design](#database-design)
 - [Environment Variables](#environment-variables)
@@ -698,6 +699,19 @@ HTTP Request
 
 **Dependency Injection** is handled by Google Wire — all wiring is generated at compile time. No service locators or
 runtime reflection.
+
+---
+
+## Design Decisions
+
+**Cache invalidation strategy**
+Deposit and withdraw delete the cache key before the transaction, then re-set it with the new balance afterward. Transfer deletes both cache keys but does not re-set them — the next `GET /accounts/:accountNumber` will repopulate from DB. This keeps transfer atomic without a cache write racing against DB commit.
+
+**Separate migrate binary**
+Migrations run as a standalone `cmd/migrate` binary rather than on server startup. This separates concerns and avoids accidental schema changes when multiple API replicas start simultaneously.
+
+**Refresh token is opaque, access token is JWT**
+Access tokens are short-lived JWTs (15 min) verified without a DB call. Refresh tokens are random strings stored in the DB, allowing explicit revocation.
 
 ---
 
